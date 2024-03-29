@@ -1,4 +1,10 @@
 #!/bin/sh
+SJH_VERSION=2.1.24
+BSL_VERSION=1.1.2
+JJFS_VERSION=0.4.0
+ASM_VERSION=9.6
+MC_VERSION=1.20.4
+PILLOW_LOADER_VERSION=`sed -rn "s#version \= \"(.*)\"#\1#p" build.gradle`
 read -rp "Please input PrismLauncher path (default to ~/.local/share/PrismLauncher):" PRISM_PATH
 if [ -z $PRISM_PATH ]; then
 PRISM_PATH=~/.local/share/PrismLauncher
@@ -11,26 +17,39 @@ fi
 read -rp "Please input classpath seprator (default to \`:\`):" SEPRATOR
 if [ -z $SEPRATOR ]; then
 SEPRATOR=:
-fi 
+fi
 
 MAVEN_LOCAL=~/.m2/repository
+echo Generating mappings...
+mkdir genmappings
+cd genmappings
+mkdir -p $MAVEN_LOCAL/net/pillowmc/intermediary2srg/$MC_VERSION
+wget https://pillowmc.github.io/mappinggen/mappinggen-0.1.0.jar
+wget https://maven.fabricmc.net/net/fabricmc/mapping-io/0.5.1/mapping-io-0.5.1.jar
+wget https://maven.fabricmc.net/net/fabricmc/intermediary/$MC_VERSION/intermediary-$MC_VERSION-v2.jar
+wget https://maven.neoforged.net/releases/net/neoforged/installertools/installertools/2.1.2/installertools-2.1.2-fatjar.jar
+unzip intermediary-$MC_VERSION-v2.jar
+java -jar installertools-2.1.2-fatjar.jar --task DOWNLOAD_MOJMAPS --version $MC_VERSION --side client --output ./mojmaps-$MC_VERSION-client.txt
+java -cp mappinggen-0.1.0.jar:mapping-io-0.5.1.jar net.pillowmc.mappinggen.Main mojmaps-$MC_VERSION-client.txt mappings/mappings.tiny $MAVEN_LOCAL/net/pillowmc/intermediary2srg/$MC_VERSION/intermediary2srg-$MC_VERSION.jar
+cd -
+rm -r genmappings
 echo Building...
 ./gradlew build publishToMavenLocal
-echo Build done.
+echo Done.
 cat > net.pillowmc.pillow.json << EOF
 {
     "formatVersion": 1,
     "name": "Pillow",
     "uid": "net.pillowmc.pillow",
-    "version": "0.2.3",
-    "minecraftArguments": "--username \${auth_player_name} --version \${version_name} --gameDir \${game_directory} --assetsDir \${assets_root} --assetIndex \${assets_index_name} --uuid \${auth_uuid} --accessToken \${auth_access_token} --userType \${user_type} --versionType \${version_type} --fml.neoForgeVersion 20.4.196 --fml.fmlVersion 2.0.17 --fml.mcVersion 1.20.4 --fml.neoFormVersion 20231207.154220 --launchTarget pillowclient",
+    "version": "$PILLOW_LOADER_VERSION",
+    "minecraftArguments": "--username \${auth_player_name} --version \${version_name} --gameDir \${game_directory} --assetsDir \${assets_root} --assetIndex \${assets_index_name} --uuid \${auth_uuid} --accessToken \${auth_access_token} --userType \${user_type} --versionType \${version_type} --fml.neoForgeVersion 20.4.196 --fml.fmlVersion 2.0.17 --fml.mcVersion $MC_VERSION --fml.neoFormVersion 20231207.154220 --launchTarget pillowclient",
     "+jvmArgs": [
         "-Dfml.pluginLayerLibraries=",
         "-DlibraryDirectory=$PRISM_PATH/libraries/",
         "-DmergeModules=jna-5.10.0.jar,jna-platform-5.10.0.jar",
-        "-DignoreList=securejarhandler-2.1.24.jar,asm-,bootstraplauncher-1.1.2.jar,JarJarFileSystems-0.4.0.jar,intermediary-,client-extra,neoforge-,1.20.4.jar,datafixerupper,minecraft-1.20.4-client.jar",
+        "-DignoreList=securejarhandler-$SJH_VERSION.jar,asm-,bootstraplauncher-$BSL_VERSION.jar,JarJarFileSystems-$JJFS_VERSION.jar,intermediary-,client-extra,neoforge-,$MC_VERSION.jar,datafixerupper,minecraft-$MC_VERSION-client.jar",
         "-p",
-        "$PRISM_PATH/libraries/cpw/mods/bootstraplauncher/1.1.2/bootstraplauncher-1.1.2.jar$SEPRATOR$PRISM_PATH/libraries/cpw/mods/securejarhandler/2.1.24/securejarhandler-2.1.24.jar$SEPRATOR$PRISM_PATH/libraries/org/ow2/asm/asm-commons/9.6/asm-commons-9.6.jar$SEPRATOR$PRISM_PATH/libraries/org/ow2/asm/asm-util/9.6/asm-util-9.6.jar$SEPRATOR$PRISM_PATH/libraries/org/ow2/asm/asm-analysis/9.6/asm-analysis-9.6.jar$SEPRATOR$PRISM_PATH/libraries/org/ow2/asm/asm-tree/9.6/asm-tree-9.6.jar$SEPRATOR$PRISM_PATH/libraries/org/ow2/asm/asm/9.6/asm-9.6.jar",
+        "$PRISM_PATH/libraries/cpw/mods/bootstraplauncher/$BSL_VERSION/bootstraplauncher-$BSL_VERSION.jar$SEPRATOR$PRISM_PATH/libraries/cpw/mods/securejarhandler/$SJH_VERSION/securejarhandler-$SJH_VERSION.jar$SEPRATOR$PRISM_PATH/libraries/org/ow2/asm/asm-commons/$ASM_VERSION/asm-commons-$ASM_VERSION.jar$SEPRATOR$PRISM_PATH/libraries/org/ow2/asm/asm-util/$ASM_VERSION/asm-util-$ASM_VERSION.jar$SEPRATOR$PRISM_PATH/libraries/org/ow2/asm/asm-analysis/$ASM_VERSION/asm-analysis-$ASM_VERSION.jar$SEPRATOR$PRISM_PATH/libraries/org/ow2/asm/asm-tree/$ASM_VERSION/asm-tree-$ASM_VERSION.jar$SEPRATOR$PRISM_PATH/libraries/org/ow2/asm/asm/$ASM_VERSION/asm-$ASM_VERSION.jar",
         "--add-modules",
         "ALL-MODULE-PATH",
         "--add-opens","java.base/java.util.jar=cpw.mods.securejarhandler",
@@ -40,11 +59,11 @@ cat > net.pillowmc.pillow.json << EOF
     ],
     "libraries": [
         {
-            "name": "net.pillowmc:pillow:0.2.3",
+            "name": "net.pillowmc:pillow:$PILLOW_LOADER_VERSION",
             "url": "file://$MAVEN_LOCAL"
         },
         {
-            "name": "net.pillowmc:intermediary2srg:1.20.4",
+            "name": "net.pillowmc:intermediary2srg:$MC_VERSION",
             "url": "file://$MAVEN_LOCAL"
         }
     ],

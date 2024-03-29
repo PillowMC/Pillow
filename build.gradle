@@ -7,7 +7,7 @@ plugins {
 }
 
 
-version = "0.2.5"
+version = "0.2.6"
 group = 'net.pillowmc' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'pillow'
 
@@ -73,7 +73,7 @@ dependencies {
         exclude group: "org.ow2.asm"
     }
     api "net.fabricmc:tiny-mappings-parser:0.3.0+build.17"
-    api ("net.fabricmc:tiny-remapper:0.8.6") {
+    api ("net.fabricmc:tiny-remapper:0.10.0") {
         exclude group: "org.ow2.asm"
     }
 }
