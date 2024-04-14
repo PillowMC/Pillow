@@ -43,4 +43,5 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: inputs.do_release
         with:
+          tag_name: v${{ inputs.pillow_v }}
           files: pillow-${{ inputs.pillow_v }}-installer.jar
