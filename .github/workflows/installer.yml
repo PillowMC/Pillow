@@ -15,6 +15,10 @@ on:
         description: 'Quilt Loader version'
         type: string
         required: true
+      do_release:
+        description: 'Do release?'
+        type: boolean
+        required: true
 jobs:
   gen: 
     runs-on: ubuntu-latest
@@ -35,3 +39,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           path: pillow-${{ inputs.pillow_v }}-installer.jar
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: inputs.do_release
+        with:
+          files: pillow-${{ inputs.pillow_v }}-installer.jar
