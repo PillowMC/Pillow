@@ -45,3 +45,4 @@ jobs:
         with:
           tag_name: v${{ inputs.pillow_v }}
           files: pillow-${{ inputs.pillow_v }}-installer.jar
+          body: Installer is from NeoForge ${{ inputs.neo_v }}, with Quilt Loader ${{ inputs.quilt_v }}.
