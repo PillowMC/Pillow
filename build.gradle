@@ -11,8 +11,7 @@ version = "0.2.7"
 group = 'net.pillowmc' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'pillow'
 
-// Mojang ships Java 17 to end users in 1.18+, so your mod should target Java 17.
-java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
 println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty 'java.vm.version'} (${System.getProperty 'java.vendor'}), Arch: ${System.getProperty 'os.arch'}"
 
@@ -64,16 +63,16 @@ configurations {
 }
 
 dependencies {
-    implementation "net.neoforged.fancymodloader:loader:2.0.18"
-    implementation "cpw.mods:modlauncher:10.0.9"
-    implementation "cpw.mods:securejarhandler:2.1.24"
+    implementation "net.neoforged.fancymodloader:loader:3.0.15"
+    implementation "cpw.mods:modlauncher:10.0.10"
+    implementation "cpw.mods:securejarhandler:2.1.31"
     implementation "org.jetbrains:annotations:24.1.0"
     api "net.fabricmc:sponge-mixin:0.12.5+mixin.0.8.5"
-    api ("org.quiltmc:quilt-loader:0.24.0") {
+    api ("org.quiltmc:quilt-loader:0.25.0") {
         exclude group: "org.ow2.asm"
     }
     api "net.fabricmc:tiny-mappings-parser:0.3.0+build.17"
-    api ("net.fabricmc:tiny-remapper:0.10.0") {
+    api ("net.fabricmc:tiny-remapper:0.10.1") {
         exclude group: "org.ow2.asm"
     }
 }

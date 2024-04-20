@@ -26,6 +26,7 @@ package net.pillowmc.pillow.asm;
 
 import cpw.mods.modlauncher.api.ITransformer;
 import cpw.mods.modlauncher.api.ITransformerVotingContext;
+import cpw.mods.modlauncher.api.TargetType;
 import cpw.mods.modlauncher.api.TransformerVoteResult;
 import java.util.ListIterator;
 import java.util.Set;
@@ -65,8 +66,13 @@ public class ClientEntryPointTransformer implements ITransformer<MethodNode> {
 	}
 
 	@Override
-	public @NotNull Set<Target> targets() {
+	public @NotNull Set<Target<MethodNode>> targets() {
 		return Set.of(Target.targetMethod("net.minecraft.client.Minecraft", "<init>",
 				"(Lnet/minecraft/client/main/GameConfig;)V"));
+	}
+
+	@Override
+	public @NotNull TargetType<MethodNode> getTargetType() {
+		return TargetType.METHOD;
 	}
 }

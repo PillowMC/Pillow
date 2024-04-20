@@ -50,10 +50,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.jar.Manifest;
 import net.fabricmc.api.EnvType;
 import net.neoforged.fml.loading.FMLPaths;
@@ -198,16 +195,10 @@ public class PillowTransformationService extends QuiltLauncherBase implements IT
 	}
 
 	@Override
-	@SuppressWarnings("rawtypes")
-	public @NotNull List<ITransformer> transformers() {
+	public @NotNull List<ITransformer<?>> transformers() {
 		return List.of(Utils.getSide() == EnvType.CLIENT
 				? new ClientEntryPointTransformer()
 				: new ServerEntryPointTransformer());
-	}
-
-	@Override
-	public Map.Entry<Set<String>, Supplier<Function<String, Optional<URL>>>> additionalClassesLocator() {
-		return null;
 	}
 
 	public static JarMetadata createJarMetadata(JarContents contents, String name) {
@@ -340,6 +331,11 @@ public class PillowTransformationService extends QuiltLauncherBase implements IT
 
 	@Override
 	public void setHiddenClasses(Set<String> classes) {
+		// TODO Error when load these classes.
+	}
+
+	@Override
+	public void setHiddenClasses(Map<String, String> classes) {
 		// TODO Error when load these classes.
 	}
 
