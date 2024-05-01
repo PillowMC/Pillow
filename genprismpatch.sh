@@ -3,10 +3,10 @@ SJH_VERSION=2.1.31
 BSL_VERSION=1.1.2
 JJFS_VERSION=0.4.0
 ASM_VERSION=9.5
-MC_VERSION=1.20.5
-NEOFORM_VERSION=20240423.152201
+MC_VERSION=1.20.6
+NEOFORM_VERSION=20240429.153634
 FML_VERSION=3.0.15
-NEOFORGE_VERSION=25.5.1-beta
+NEOFORGE_VERSION=20.6.1-beta
 PILLOW_LOADER_VERSION=`sed -rn "s#version \= \"(.*)\"#\1#p" build.gradle`
 read -rp "Please input PrismLauncher path (default to ~/.local/share/PrismLauncher):" PRISM_PATH
 if [ -z $PRISM_PATH ]; then
