@@ -19,6 +19,7 @@ println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty '
 license {
     rule project.rootProject.file("LICENSE")
     include '**/*.java'
+    exclude '**/*/urlhandler/**/*.java'
 }
 
 java {
@@ -69,11 +70,11 @@ dependencies {
     implementation "cpw.mods:securejarhandler:2.1.24"
     implementation "org.jetbrains:annotations:24.1.0"
     api "net.fabricmc:sponge-mixin:0.12.5+mixin.0.8.5"
-    api ("org.quiltmc:quilt-loader:0.24.0") {
+    api ("org.quiltmc:quilt-loader:0.25.0") {
         exclude group: "org.ow2.asm"
     }
     api "net.fabricmc:tiny-mappings-parser:0.3.0+build.17"
-    api ("net.fabricmc:tiny-remapper:0.10.0") {
+    api ("net.fabricmc:tiny-remapper:0.10.1") {
         exclude group: "org.ow2.asm"
     }
 }
