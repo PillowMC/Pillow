@@ -76,6 +76,7 @@ import org.quiltmc.loader.impl.util.log.Log;
 import org.quiltmc.loader.impl.util.log.LogCategory;
 
 public class PillowTransformationService extends QuiltLauncherBase implements ITransformationService {
+	private static final String DFU_VERSION = "7.0.14";
 	@SuppressWarnings("unchecked")
 	public PillowTransformationService() {
 		var layer = Launcher.INSTANCE.findLayerManager().get().getLayer(Layer.BOOT).get();
@@ -128,8 +129,7 @@ public class PillowTransformationService extends QuiltLauncherBase implements IT
 			newval.add(new QuiltZipFileSystemProvider());
 			installedProviders.set(null, Collections.unmodifiableList(newval));
 			Utils.setModule(old, getClass());
-		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException
-				| IllegalAccessException e) {
+		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
 			throw new RuntimeException(e);
 		}
 		provider = new PillowGameProvider();
@@ -177,7 +177,8 @@ public class PillowTransformationService extends QuiltLauncherBase implements IT
 				.build();
 		var modJar = SecureJar.from(modContents, createJarMetadata(modContents, "quiltMods"));
 		var modResource = new Resource(Layer.GAME, List.of(modJar));
-		var dfuJar = SecureJar.from(LibraryFinder.findPathForMaven("com.mojang", "datafixerupper", "", "", "6.0.8"));
+		var dfuJar = SecureJar
+				.from(LibraryFinder.findPathForMaven("com.mojang", "datafixerupper", "", "", DFU_VERSION));
 		var depResource = new Resource(Layer.GAME, List.of(dfuJar));
 		return List.of(modResource, depResource);
 	}
