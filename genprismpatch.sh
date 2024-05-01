@@ -32,7 +32,7 @@ then
     wget https://maven.neoforged.net/releases/net/neoforged/installertools/installertools/2.1.2/installertools-2.1.2-fatjar.jar
     unzip intermediary-$MC_VERSION-v2.jar
     java -jar installertools-2.1.2-fatjar.jar --task DOWNLOAD_MOJMAPS --version $MC_VERSION --side client --output ./mojmaps-$MC_VERSION-client.txt
-    java -jar mappinggen-0.1.1.jar -cp mapping-io-0.5.1.jar mojmaps-$MC_VERSION-client.txt mappings/mappings.tiny $MAVEN_LOCAL/net/pillowmc/intermediary2srg/$MC_VERSION/intermediary2srg-$MC_VERSION.jar
+    java -cp mapping-io-0.5.1.jar -jar mappinggen-0.1.1.jar mojmaps-$MC_VERSION-client.txt mappings/mappings.tiny $MAVEN_LOCAL/net/pillowmc/intermediary2srg/$MC_VERSION/intermediary2srg-$MC_VERSION.jar
     cd -
     rm -r genmappings
 fi
