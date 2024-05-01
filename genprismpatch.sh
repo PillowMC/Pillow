@@ -1,9 +1,12 @@
 #!/bin/sh
-SJH_VERSION=2.1.24
+SJH_VERSION=2.1.31
 BSL_VERSION=1.1.2
 JJFS_VERSION=0.4.0
-ASM_VERSION=9.6
-MC_VERSION=1.20.4
+ASM_VERSION=9.5
+MC_VERSION=1.20.5
+NEOFORM_VERSION=20240423.152201
+FML_VERSION=3.0.15
+NEOFORGE_VERSION=25.5.1-beta
 PILLOW_LOADER_VERSION=`sed -rn "s#version \= \"(.*)\"#\1#p" build.gradle`
 read -rp "Please input PrismLauncher path (default to ~/.local/share/PrismLauncher):" PRISM_PATH
 if [ -z $PRISM_PATH ]; then
@@ -32,7 +35,7 @@ then
     wget https://maven.neoforged.net/releases/net/neoforged/installertools/installertools/2.1.2/installertools-2.1.2-fatjar.jar
     unzip intermediary-$MC_VERSION-v2.jar
     java -jar installertools-2.1.2-fatjar.jar --task DOWNLOAD_MOJMAPS --version $MC_VERSION --side client --output ./mojmaps-$MC_VERSION-client.txt
-    java -cp mapping-io-0.5.1.jar -jar mappinggen-0.1.1.jar mojmaps-$MC_VERSION-client.txt mappings/mappings.tiny $MAVEN_LOCAL/net/pillowmc/intermediary2srg/$MC_VERSION/intermediary2srg-$MC_VERSION.jar
+    java -cp mapping-io-0.5.1.jar:mappinggen-0.1.1.jar net.pillowmc.mappinggen.Main mojmaps-$MC_VERSION-client.txt mappings/mappings.tiny $MAVEN_LOCAL/net/pillowmc/intermediary2srg/$MC_VERSION/intermediary2srg-$MC_VERSION.jar
     cd -
     rm -r genmappings
 fi
@@ -45,7 +48,7 @@ cat > net.pillowmc.pillow.json << EOF
     "name": "Pillow",
     "uid": "net.pillowmc.pillow",
     "version": "$PILLOW_LOADER_VERSION",
-    "minecraftArguments": "--username \${auth_player_name} --version \${version_name} --gameDir \${game_directory} --assetsDir \${assets_root} --assetIndex \${assets_index_name} --uuid \${auth_uuid} --accessToken \${auth_access_token} --userType \${user_type} --versionType \${version_type} --fml.neoForgeVersion 20.4.196 --fml.fmlVersion 2.0.17 --fml.mcVersion $MC_VERSION --fml.neoFormVersion 20231207.154220 --launchTarget pillowclient",
+    "minecraftArguments": "--username \${auth_player_name} --version \${version_name} --gameDir \${game_directory} --assetsDir \${assets_root} --assetIndex \${assets_index_name} --uuid \${auth_uuid} --accessToken \${auth_access_token} --userType \${user_type} --versionType \${version_type} --fml.neoForgeVersion $NEOFORGE_VERSION --fml.fmlVersion $FML_VERSION --fml.mcVersion $MC_VERSION --fml.neoFormVersion $NEOFORM_VERSION --launchTarget pillowclient",
     "+jvmArgs": [
         "-Dfml.pluginLayerLibraries=",
         "-DlibraryDirectory=$PRISM_PATH/libraries/",

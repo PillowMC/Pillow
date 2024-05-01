@@ -37,7 +37,7 @@ public class Utils {
 	private static EnvType side;
 	private static Unsafe unsafe;
 	private static long offset;
-	
+
 	static {
 		Field theUnsafe;
 		try {
