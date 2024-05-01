@@ -20,19 +20,22 @@ SEPRATOR=:
 fi
 
 MAVEN_LOCAL=~/.m2/repository
-echo Generating mappings...
-mkdir genmappings
-cd genmappings
-mkdir -p $MAVEN_LOCAL/net/pillowmc/intermediary2srg/$MC_VERSION
-wget https://pillowmc.github.io/mappinggen/mappinggen-0.1.1.jar
-wget https://maven.fabricmc.net/net/fabricmc/mapping-io/0.5.1/mapping-io-0.5.1.jar
-wget https://maven.fabricmc.net/net/fabricmc/intermediary/$MC_VERSION/intermediary-$MC_VERSION-v2.jar
-wget https://maven.neoforged.net/releases/net/neoforged/installertools/installertools/2.1.2/installertools-2.1.2-fatjar.jar
-unzip intermediary-$MC_VERSION-v2.jar
-java -jar installertools-2.1.2-fatjar.jar --task DOWNLOAD_MOJMAPS --version $MC_VERSION --side client --output ./mojmaps-$MC_VERSION-client.txt
-java -jar mappinggen-0.1.1.jar -cp mapping-io-0.5.1.jar mojmaps-$MC_VERSION-client.txt mappings/mappings.tiny $MAVEN_LOCAL/net/pillowmc/intermediary2srg/$MC_VERSION/intermediary2srg-$MC_VERSION.jar
-cd -
-rm -r genmappings
+if [ ! -f $MAVEN_LOCAL/net/pillowmc/intermediary2srg/$MC_VERSION/intermediary2srg-$MC_VERSION.jar ]
+then
+    echo Generating mappings...
+    mkdir genmappings
+    cd genmappings
+    mkdir -p $MAVEN_LOCAL/net/pillowmc/intermediary2srg/$MC_VERSION
+    wget https://pillowmc.github.io/mappinggen/mappinggen-0.1.1.jar
+    wget https://maven.fabricmc.net/net/fabricmc/mapping-io/0.5.1/mapping-io-0.5.1.jar
+    wget https://maven.fabricmc.net/net/fabricmc/intermediary/$MC_VERSION/intermediary-$MC_VERSION-v2.jar
+    wget https://maven.neoforged.net/releases/net/neoforged/installertools/installertools/2.1.2/installertools-2.1.2-fatjar.jar
+    unzip intermediary-$MC_VERSION-v2.jar
+    java -jar installertools-2.1.2-fatjar.jar --task DOWNLOAD_MOJMAPS --version $MC_VERSION --side client --output ./mojmaps-$MC_VERSION-client.txt
+    java -jar mappinggen-0.1.1.jar -cp mapping-io-0.5.1.jar mojmaps-$MC_VERSION-client.txt mappings/mappings.tiny $MAVEN_LOCAL/net/pillowmc/intermediary2srg/$MC_VERSION/intermediary2srg-$MC_VERSION.jar
+    cd -
+    rm -r genmappings
+fi
 echo Building...
 ./gradlew build publishToMavenLocal
 echo Done.

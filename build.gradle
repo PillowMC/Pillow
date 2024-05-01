@@ -18,6 +18,7 @@ println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty '
 license {
     rule project.rootProject.file("LICENSE")
     include '**/*.java'
+    exclude '**/*/urlhandler/**/*.java'
 }
 
 java {

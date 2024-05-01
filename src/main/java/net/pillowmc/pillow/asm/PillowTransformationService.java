@@ -107,31 +107,18 @@ public class PillowTransformationService extends QuiltLauncherBase implements IT
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
+	// @SuppressWarnings("unchecked")
 	public void initialize(IEnvironment environment) {
 		setProperties(new HashMap<>());
 		setupUncaughtExceptionHandler();
-		// Don't touch here
-		// Reload URLStreamHandlerFactory(s).
-		try {
-			var old = Utils.setModule(URL.class.getModule(), getClass());
-			var field = URL.class.getDeclaredField("factory");
-			field.setAccessible(true);
-			var oldFactory = (URLStreamHandlerFactory) field.get(null);
-			field.set(null, null);
-			DelegatingUrlStreamHandlerFactory.appendFactory(oldFactory);
-			field.set(null, DelegatingUrlStreamHandlerFactory.INSTANCE);
-			Utils.setModule(old, getClass());
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-		// End of don't touch here
+		setupURLHandlers();
 		// Add Quilt's FileSystemProviders.
 		try {
 			var FSPC = FileSystemProvider.class;
 			var old = Utils.setModule(FSPC.getModule(), getClass());
 			var installedProviders = FSPC.getDeclaredField("installedProviders");
 			installedProviders.setAccessible(true);
+			@SuppressWarnings("unchecked")
 			var val = (List<FileSystemProvider>) installedProviders.get(null);
 			var newval = new ArrayList<>(val);
 			newval.removeIf(i -> i.getClass().getName().contains("Quilt"));
@@ -141,7 +128,8 @@ public class PillowTransformationService extends QuiltLauncherBase implements IT
 			newval.add(new QuiltZipFileSystemProvider());
 			installedProviders.set(null, Collections.unmodifiableList(newval));
 			Utils.setModule(old, getClass());
-		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
+		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException
+				| IllegalAccessException e) {
 			throw new RuntimeException(e);
 		}
 		provider = new PillowGameProvider();
@@ -159,6 +147,24 @@ public class PillowTransformationService extends QuiltLauncherBase implements IT
 		loader.load();
 		loader.freeze();
 		QuiltConfigImpl.init();
+	}
+
+	private static void setupURLHandlers() {
+		// Don't touch here
+		// Reload URLStreamHandlerFactory(s).
+		try {
+			var old = Utils.setModule(URL.class.getModule(), PillowTransformationService.class);
+			var field = URL.class.getDeclaredField("factory");
+			field.setAccessible(true);
+			var oldFactory = (URLStreamHandlerFactory) field.get(null);
+			field.set(null, null);
+			DelegatingUrlStreamHandlerFactory.appendFactory(oldFactory);
+			field.set(null, DelegatingUrlStreamHandlerFactory.INSTANCE);
+			Utils.setModule(old, PillowTransformationService.class);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		// End of don't touch here
 	}
 
 	@Override
@@ -326,6 +332,10 @@ public class PillowTransformationService extends QuiltLauncherBase implements IT
 
 	@Override
 	public ClassLoader getClassLoader(ModContainer mod) {
+		// if (mod.metadata() instanceof ModMetadataExt ext &&
+		// !ext.languageAdapters().isEmpty()) {
+		// return ;
+		// }
 		return getTargetClassLoader();
 	}
 

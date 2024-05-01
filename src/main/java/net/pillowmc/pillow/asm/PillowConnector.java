@@ -27,6 +27,7 @@ package net.pillowmc.pillow.asm;
 import cpw.mods.modlauncher.Launcher;
 import cpw.mods.modlauncher.api.IModuleLayerManager.Layer;
 import net.pillowmc.pillow.Utils;
+
 import org.quiltmc.loader.impl.QuiltLoaderImpl;
 import org.quiltmc.loader.impl.launch.common.QuiltLauncherBase;
 import org.quiltmc.loader.impl.launch.common.QuiltMixinBootstrap;
@@ -47,19 +48,10 @@ public class PillowConnector implements IMixinConnector {
 		var loader = bootLayer
 				.findModule(PillowNamingContext.isUserDev ? "org.quiltmc.loader.beta._2" : "org.quiltmc.loader")
 				.orElseThrow();
-		var sqlModule = bootLayer.findModule("java.sql").orElseThrow();
-		var mixinModule = IMixinConnector.class.getModule();
 		var selfModule = Utils.setModule(mods, getClass());
 		mods.addReads(loader);
 		Utils.setModule(loader, getClass());
 		loader.addReads(mods);
-		Utils.setModule(mixinModule, getClass());
-		mixinModule.addReads(sqlModule);
-		try {
-			mixinModule.addUses(Class.forName("org.spongepowered.include.com.google.common.base.PatternCompiler"));
-		} catch (ClassNotFoundException e1) {
-			throw new RuntimeException(e1);
-		}
 		Utils.setModule(selfModule, getClass());
 		var mappings = QuiltLauncherBase.getLauncher().getMappingConfiguration().getMappings();
 		// QuiltMixinBootstrap.init

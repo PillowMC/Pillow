@@ -37,7 +37,7 @@ public class Utils {
 	private static EnvType side;
 	private static Unsafe unsafe;
 	private static long offset;
-
+	
 	static {
 		Field theUnsafe;
 		try {
@@ -82,6 +82,7 @@ public class Utils {
 		return path;
 	}
 
+	@Deprecated
 	public static Module setModule(Module new_, Class<?> class_) {
 		var old = class_.getModule();
 		unsafe.putObject(class_, offset, new_);
