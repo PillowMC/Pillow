@@ -31,7 +31,7 @@ Connect $BD$ and make $CG$ cross $G$ to make the extension line of $CG$ pass thr
 This mod can let Quilt Loader and Fancy Mod Loader run on the top of ModLauncher with Minecraft obfuscated with Searge name.
 
 ## Developing Status
-Almost done. All modules in QSL and QFAPI worked well, except biome API.
+Almost done.
 
 ## Installing
 
