@@ -31,6 +31,11 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+      - name: Cache target dir
+        uses: actions/cache
+        with:
+          path: target
+          key: metatarget
       - name: Generate installer
         run: |
           wget https://maven.neoforged.net/releases/net/neoforged/neoforge/${{ inputs.neo_v }}/neoforge-${{ inputs.neo_v }}-installer.jar
