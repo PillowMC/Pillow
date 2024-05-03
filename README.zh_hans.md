@@ -32,11 +32,13 @@ $A(0, a), B(1, a), C(1, 0), D(0, 0), E(0, a-b), F(1, b)$,
 这个模组会让 Quilt 加载器和 Fancy Mod Loader 在 ModLauncher 上和以 Searge 名混淆的 Minecraft 运行。
 
 ## 开发进度
-几乎已经完成。目前除了生物群系 API 不兼容，QSL 和 QFAPI 各个模块均正常工作。
+几乎已经完成。
 
 ## 安装
 
-_未开发_
+从正规渠道（符合 MIT License（v0.3.1前）或 LGPL 2.1（v0.3.1和以上）要求[2]）下载安装器。
+如果你使用 HMCL，把下载器拖动到已经安装好的版本的自动安装页面里。
+如果你使用其他启动器，按照（Neo）Forge 安装方法安装。
 
 ## 支持
 
@@ -44,8 +46,4 @@ _未开放_
 
 ## 许可证
 
-这个项目的许可证是 [MIT 许可证](LICENSE)。
-
-Quilt 加载器项目的许可证是 [Apache](LICENSE.Quilt)。
-
-Fancy Mod Loader 项目的许可证是 [LGPL 2.1](LICENSE.FancyModLoader)。
+v0.3.1 之前，这个项目的许可证是 MIT 许可证。v0.3.1 及以后为 [LGPL v2.1](LICENSE)。

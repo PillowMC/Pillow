@@ -35,16 +35,12 @@ Almost done. All modules in QSL and QFAPI worked well, except biome API.
 
 ## Installing
 
-_Not developed yet._
+Download the installer from GitHub releases, actions or other legal (see [License](#license)) places. Then use it like NeoForge installers. If you use HMCL, you can drag it to the automatic installation page.
 
 ## Support
 
 _Not opened yet._
 
-## License
+## <span id="license">License</span>
 
-This project is licensed under [MIT License](LICENSE).
-
-Quilt Loader is licensed under [Apache](LICENSE.Quilt).
-
-Fancy Mod Loader is licensed under [LGPL 2.1](LICENSE.FancyModLoader).
+This project is licensed under [LGPL v2.1 License](LICENSE) since v0.3.1. Versions v0.3.0 or below is licensed under MIT License.

@@ -25,6 +25,6 @@ jobs:
     - name: Build and publish with Gradle
       uses: gradle/gradle-build-action@v3
       with:
-        arguments: build publish
+        arguments: build
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
