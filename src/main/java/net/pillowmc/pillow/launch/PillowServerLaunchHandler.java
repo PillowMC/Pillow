@@ -5,11 +5,12 @@
 
 package net.pillowmc.pillow.launch;
 
-import java.nio.file.Path;
 import java.util.List;
-import java.util.stream.Stream;
+import java.util.function.Consumer;
 import net.neoforged.fml.loading.VersionInfo;
 import net.neoforged.fml.loading.targets.CommonServerLaunchHandler;
+import net.neoforged.neoforgespi.locating.IModFileCandidateLocator;
+import net.pillowmc.pillow.launch.copied.PillowServerProvider;
 import org.quiltmc.loader.api.QuiltLoader;
 import org.quiltmc.loader.impl.QuiltLoaderImpl;
 
@@ -26,7 +27,9 @@ public class PillowServerLaunchHandler extends CommonServerLaunchHandler {
 	}
 
 	@Override
-	protected void processMCStream(VersionInfo versionInfo, Stream.Builder<Path> mc, Stream.Builder<List<Path>> mods) {
-		mc.accept(QuiltLoader.getModContainer("minecraft").get().rootPath());
+	public void collectAdditionalModFileLocators(VersionInfo versionInfo, Consumer<IModFileCandidateLocator> output) {
+		var additionalContent = getAdditionalMinecraftJarContent(versionInfo);
+		output.accept(new PillowServerProvider(additionalContent,
+				List.of(QuiltLoader.getModContainer("minecraft").get().rootPath())));
 	}
 }
