@@ -1,25 +1,6 @@
 /*
- * MIT License
- *
- * Copyright (c) 2024 PillowMC
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * Copyright (c) PillowMC and contributors
+ * SPDX-License-Identifier: LGPL-2.1-only
  */
 
 package net.pillowmc.pillow.asm;
@@ -40,7 +21,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.net.URL;
-import java.net.URLStreamHandlerFactory;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.spi.FileSystemProvider;
@@ -63,7 +43,6 @@ import org.quiltmc.loader.api.ModContainer;
 import org.quiltmc.loader.impl.QuiltLoaderImpl;
 import org.quiltmc.loader.impl.config.QuiltConfigImpl;
 import org.quiltmc.loader.impl.entrypoint.GameTransformer;
-import org.quiltmc.loader.impl.filesystem.DelegatingUrlStreamHandlerFactory;
 import org.quiltmc.loader.impl.filesystem.QuiltJoinedFileSystemProvider;
 import org.quiltmc.loader.impl.filesystem.QuiltMemoryFileSystemProvider;
 import org.quiltmc.loader.impl.filesystem.QuiltUnifiedFileSystemProvider;
@@ -72,6 +51,7 @@ import org.quiltmc.loader.impl.game.GameProvider;
 import org.quiltmc.loader.impl.game.minecraft.Log4jLogHandler;
 import org.quiltmc.loader.impl.launch.common.QuiltLauncherBase;
 import org.quiltmc.loader.impl.plugin.gui.I18n;
+import org.quiltmc.loader.impl.util.SystemProperties;
 import org.quiltmc.loader.impl.util.log.Log;
 import org.quiltmc.loader.impl.util.log.LogCategory;
 
@@ -150,21 +130,7 @@ public class PillowTransformationService extends QuiltLauncherBase implements IT
 	}
 
 	private static void setupURLHandlers() {
-		// Don't touch here
-		// Reload URLStreamHandlerFactory(s).
-		try {
-			var old = Utils.setModule(URL.class.getModule(), PillowTransformationService.class);
-			var field = URL.class.getDeclaredField("factory");
-			field.setAccessible(true);
-			var oldFactory = (URLStreamHandlerFactory) field.get(null);
-			field.set(null, null);
-			DelegatingUrlStreamHandlerFactory.appendFactory(oldFactory);
-			field.set(null, DelegatingUrlStreamHandlerFactory.INSTANCE);
-			Utils.setModule(old, PillowTransformationService.class);
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-		// End of don't touch here
+		System.setProperty(SystemProperties.DISABLE_URL_STREAM_FACTORY, "true");
 	}
 
 	@Override
@@ -193,7 +159,7 @@ public class PillowTransformationService extends QuiltLauncherBase implements IT
 			"com/electronwill/nightconfig", "org/openjdk/nashorn", "org/apache/maven/artifact",
 			"org/apache/maven/repository", "org/lwjgl", "org/antlr");
 
-	private boolean filterPackages(String entry, String basePath) {
+	private boolean filterPackages(String entry, Path basePath) {
 		return !NO_LOAD_PACKAGES.stream().anyMatch((pack) -> entry.startsWith(pack));
 	}
 
