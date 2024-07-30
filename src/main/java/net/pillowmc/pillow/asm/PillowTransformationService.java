@@ -365,6 +365,11 @@ public class PillowTransformationService extends QuiltLauncherBase implements IT
 		// TODO Error when load these classes.
 	}
 
+	@Override
+	public void setPluginPackages(Map<String, ClassLoader> map) {
+
+	}
+
 	private final GameTransformer gameTransformer = new GameTransformer() {
 		public byte[] transform(String className) {
 			return null;
