@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -32,6 +33,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.jar.Manifest;
+import java.util.stream.Stream;
+
 import net.fabricmc.api.EnvType;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.fml.loading.LibraryFinder;
@@ -40,6 +43,7 @@ import net.pillowmc.pillow.Utils;
 import net.pillowmc.pillow.hacks.SuperHackyClassLoader;
 import org.jetbrains.annotations.NotNull;
 import org.quiltmc.loader.api.ModContainer;
+import org.quiltmc.loader.api.plugin.ModMetadataExt;
 import org.quiltmc.loader.impl.QuiltLoaderImpl;
 import org.quiltmc.loader.impl.config.QuiltConfigImpl;
 import org.quiltmc.loader.impl.entrypoint.GameTransformer;
@@ -57,9 +61,10 @@ import org.quiltmc.loader.impl.util.log.LogCategory;
 
 public class PillowTransformationService extends QuiltLauncherBase implements ITransformationService {
 	private static final String DFU_VERSION = "7.0.14";
+	private boolean hasLanguageAdapter = false;
 	@SuppressWarnings("unchecked")
 	public PillowTransformationService() {
-		var layer = Launcher.INSTANCE.findLayerManager().get().getLayer(Layer.BOOT).get();
+		var layer = Launcher.INSTANCE.findLayerManager().orElseThrow().getLayer(Layer.BOOT).orElseThrow();
 		Utils.setModule(Thread.currentThread().getContextClassLoader().getUnnamedModule(), I18n.class);
 		// Remove other mixin services. These services may not work well.
 		try {
@@ -125,7 +130,15 @@ public class PillowTransformationService extends QuiltLauncherBase implements IT
 		QuiltLoaderImpl loader = QuiltLoaderImpl.INSTANCE;
 		loader.setGameProvider(provider);
 		loader.load();
-		loader.freeze();
+		try {
+			loader.freeze();
+		} catch (RuntimeException e) {
+			if (e.getMessage().startsWith("Failed to instantiate language adapter: ")) {
+				this.hasLanguageAdapter = true;
+			} else {
+				throw e;
+			}
+		}
 		QuiltConfigImpl.init();
 	}
 
@@ -134,8 +147,33 @@ public class PillowTransformationService extends QuiltLauncherBase implements IT
 	}
 
 	@Override
+	public List<Resource> beginScanning(IEnvironment environment) {
+		if (plugincp.isEmpty())
+			return List.of();
+		var modContents = new JarContentsBuilder().paths(plugincp.toArray(new Path[0])).pathFilter(this::filterPackagesPluginLayer)
+				.build();
+		var modJar = SecureJar.from(modContents, createJarMetadata(modContents, "quiltLanguageMods"));
+		var modResource = new Resource(Layer.PLUGIN, List.of(modJar));
+		return List.of(modResource);
+	}
+
+	@Override
 	public List<Resource> completeScan(IModuleLayerManager environment) {
-		Log.debug(LogCategory.DISCOVERY, "Completing scan with classpath %s", cp);
+		if (this.hasLanguageAdapter) {
+			var clazz = QuiltLoaderImpl.class;
+			var old = Utils.setModule(clazz.getModule(), getClass());
+			try {
+				var method = clazz.getDeclaredMethod("setupLanguageAdapters");
+				method.setAccessible(true);
+				method.invoke(QuiltLoaderImpl.INSTANCE);
+				method = clazz.getDeclaredMethod("setupMods");
+				method.setAccessible(true);
+				method.invoke(QuiltLoaderImpl.INSTANCE);
+			} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+				throw new RuntimeException(e);
+			}
+			Utils.setModule(old, getClass());
+		}
 		if (cp.isEmpty())
 			return List.of();
 		// We merge all Quilt mods into one module.
@@ -154,13 +192,19 @@ public class PillowTransformationService extends QuiltLauncherBase implements IT
 	// So we remove these packages from quiltMods to make the module system happy.
 	// But... Who includes LWJGL??? IDK but without this in NO_LOAD_PACKAGES,
 	// Replay Mod will crash.
-	// However, I didn't found org/lwjgl in Replay Mod.
-	public static Set<String> NO_LOAD_PACKAGES = loadNoLoads("packages", "javax/annotation",
+	// However, I didn't find org/lwjgl in Replay Mod.
+	public static final Set<String> NO_LOAD_PACKAGES = loadNoLoads("packages", "javax/annotation",
 			"com/electronwill/nightconfig", "org/openjdk/nashorn", "org/apache/maven/artifact",
 			"org/apache/maven/repository", "org/lwjgl", "org/antlr");
 
-	private boolean filterPackages(String entry, Path basePath) {
-		return !NO_LOAD_PACKAGES.stream().anyMatch((pack) -> entry.startsWith(pack));
+	public static final Set<String> NO_LOAD_PACKAGES_PLUGIN_LAYER = loadNoLoads("packages-plugin-layer", "kotlin", "_COROUTINE");
+
+	private boolean filterPackages(String entry, Path _basePath) {
+		return NO_LOAD_PACKAGES.stream().noneMatch(entry::startsWith);
+	}
+
+	private boolean filterPackagesPluginLayer(String entry, Path _basePath) {
+		return Stream.concat(NO_LOAD_PACKAGES.stream(), NO_LOAD_PACKAGES_PLUGIN_LAYER.stream()).noneMatch(entry::startsWith);
 	}
 
 	@Override
@@ -180,7 +224,8 @@ public class PillowTransformationService extends QuiltLauncherBase implements IT
 
 	private GameProvider provider;
 	private final List<Path> cp = new ArrayList<>();
-	public static Set<String> NO_LOAD_MODS = loadNoLoads("mods", "pillow-loader", "forge", "minecraft", "java",
+	private final List<Path> plugincp = new ArrayList<>();
+	public static final Set<String> NO_LOAD_MODS = loadNoLoads("mods", "pillow-loader", "forge", "minecraft", "java",
 			"night-config", "org_antlr_antlr4-runtime");
 
 	private static Set<String> loadNoLoads(String name, String... defaults) {
@@ -266,14 +311,18 @@ public class PillowTransformationService extends QuiltLauncherBase implements IT
 
 	@Override
 	public List<Path> getClassPath() {
-		return List.of(System.getProperty("legacyClassPath").split(File.pathSeparator)).stream().map(Path::of).toList();
+		return Stream.of(System.getProperty("legacyClassPath").split(File.pathSeparator)).map(Path::of).toList();
 	}
 
 	@Override
 	public void addToClassPath(Path path, ModContainer mod, URL origin, String... allowedPrefixes) {
 		if (NO_LOAD_MODS.contains(mod.metadata().id()))
 			return;
-		addToClassPath(path, allowedPrefixes);
+		if (mod.metadata() instanceof ModMetadataExt ext && !ext.languageAdapters().isEmpty()) {
+			plugincp.add(path);
+		} else {
+			cp.add(path);
+		}
 	}
 
 	@Override
@@ -299,10 +348,10 @@ public class PillowTransformationService extends QuiltLauncherBase implements IT
 
 	@Override
 	public ClassLoader getClassLoader(ModContainer mod) {
-		// if (mod.metadata() instanceof ModMetadataExt ext &&
-		// !ext.languageAdapters().isEmpty()) {
-		// return ;
-		// }
+		if (mod.metadata() instanceof ModMetadataExt ext &&
+			!ext.languageAdapters().isEmpty()) {
+			return Launcher.INSTANCE.findLayerManager().orElseThrow().getLayer(Layer.PLUGIN).orElseThrow().findLoader("quiltLanguageMods");
+		}
 		return getTargetClassLoader();
 	}
 
@@ -319,7 +368,7 @@ public class PillowTransformationService extends QuiltLauncherBase implements IT
 	private final GameTransformer gameTransformer = new GameTransformer() {
 		public byte[] transform(String className) {
 			return null;
-		};
+		}
 	};
 
 	@Override

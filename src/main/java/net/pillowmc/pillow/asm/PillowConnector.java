@@ -17,21 +17,36 @@ import org.quiltmc.loader.impl.util.mappings.MixinIntermediaryDevRemapper;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 import org.spongepowered.asm.mixin.connect.IMixinConnector;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+
+@SuppressWarnings("unused")
 public class PillowConnector implements IMixinConnector {
 	@Override
 	public void connect() {
 		var manager = Launcher.INSTANCE.findLayerManager().orElseThrow();
+		var languageMods = manager.getLayer(Layer.GAME).orElseThrow().findModule("quiltLanguageMods").orElse(null);
 		var mods = manager.getLayer(Layer.GAME).orElseThrow().findModule("quiltMods").orElse(null);
-		if (mods == null)
+		if (mods == null && languageMods == null)
 			return; // No Quilt Mod installed.
 		var bootLayer = manager.getLayer(Layer.BOOT).orElseThrow();
 		var loader = bootLayer
 				.findModule(PillowNamingContext.isUserDev ? "org.quiltmc.loader.beta._2" : "org.quiltmc.loader")
 				.orElseThrow();
-		var selfModule = Utils.setModule(mods, getClass());
-		mods.addReads(loader);
+		var selfModule = getClass().getModule();
+		if (mods != null) {
+			Utils.setModule(mods, getClass());
+			mods.addReads(loader);
+			if (languageMods != null) mods.addReads(languageMods);
+		}
 		Utils.setModule(loader, getClass());
-		loader.addReads(mods);
+		if (mods != null) loader.addReads(mods);
+		if (languageMods != null) loader.addReads(languageMods);
+		if (languageMods != null) {
+			Utils.setModule(languageMods, getClass());
+			languageMods.addReads(loader);
+			if (mods != null) languageMods.addReads(mods);
+		}
 		Utils.setModule(selfModule, getClass());
 		var mappings = QuiltLauncherBase.getLauncher().getMappingConfiguration().getMappings();
 		// QuiltMixinBootstrap.init
@@ -43,7 +58,9 @@ public class PillowConnector implements IMixinConnector {
 			Log.info(LogCategory.MIXIN, "Loaded Pillow Loader mappings for mixin remapper!");
 		} catch (Exception e) {
 			Log.error(LogCategory.MIXIN, "Pillow Loader environment setup error - the game will probably crash soon!");
-			e.printStackTrace();
+			var byos = new ByteArrayOutputStream();
+			e.printStackTrace(new PrintStream(byos));
+			Log.error(LogCategory.MIXIN, byos.toString());
 		}
 		QuiltMixinBootstrap.init(QuiltLauncherBase.getLauncher().getEnvironmentType(), QuiltLoaderImpl.INSTANCE);
 	}

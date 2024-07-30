@@ -114,7 +114,7 @@ publishing {
             artifact jar
             artifact sourcesJar
             pom.withXml {
-                def dependenciesNode = asNode().appendNode('dependencies')
+                    def dependenciesNode = asNode().appendNode('dependencies')
 
                 configurations.api.allDependencies.each {
                     def dependencyNode = dependenciesNode.appendNode('dependency')

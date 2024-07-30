@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -66,7 +65,7 @@ public class PillowGameProvider implements GameProvider {
 		} else {
 			path = LibraryFinder.findPathForMaven("net.minecraft", "client", "", "srg", vers.mcAndNeoFormVersion());
 		}
-		return Arrays.asList(new BuiltinMod(List.of(path), minecraftMetadata.build()));
+		return List.of(new BuiltinMod(List.of(path), minecraftMetadata.build()));
 	}
 
 	@Override

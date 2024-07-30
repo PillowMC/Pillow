@@ -20,7 +20,7 @@ public class SuperHackyClassLoader extends ClassLoader {
 	public Enumeration<URL> getResources(String name) throws IOException {
 		if (name.equals("quilt.mod.json")) {
 			var urls = QuiltLauncherBase.getLauncher().getTargetClassLoader().getResources(name);
-			return new Enumeration<URL>() {
+			return new Enumeration<>() {
 				@Override
 				public boolean hasMoreElements() {
 					return urls.hasMoreElements();

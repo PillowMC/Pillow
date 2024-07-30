@@ -56,9 +56,7 @@ public class PillowClientProvider implements IModFileCandidateLocator {
 		}
 
 		// PillowMC: Added additionalFiles (3 lines)
-		for (var file : additionalFiles) {
-			content.add(file);
-		}
+        content.addAll(additionalFiles);
 
 		try {
 			var mcJarContents = JarContents.of(content);
@@ -91,10 +89,5 @@ public class PillowClientProvider implements IModFileCandidateLocator {
 			result.append(" +").append(mavenCoordinate);
 		}
 		return result.toString();
-	}
-
-	@Override
-	public int getPriority() {
-		return HIGHEST_SYSTEM_PRIORITY;
 	}
 }

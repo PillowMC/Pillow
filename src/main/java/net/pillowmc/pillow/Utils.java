@@ -12,12 +12,15 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import net.fabricmc.api.EnvType;
 import net.neoforged.fml.loading.FMLLoader;
+import org.quiltmc.loader.impl.util.log.LogCategory;
 import sun.misc.Unsafe;
 
 public class Utils {
 	private static EnvType side;
-	private static Unsafe unsafe;
-	private static long offset;
+	private static final Unsafe unsafe;
+	private static final long offset;
+
+	public static final LogCategory PILLOW_LOG_CATEGORY = LogCategory.createCustom("Pillow Loader");
 
 	static {
 		Field theUnsafe;
@@ -28,7 +31,7 @@ public class Utils {
 			Field module = Class.class.getDeclaredField("module");
 			offset = unsafe.objectFieldOffset(module);
 		} catch (NoSuchFieldException | IllegalAccessException e) {
-			e.printStackTrace();
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -41,23 +44,21 @@ public class Utils {
 	@SuppressWarnings("unchecked")
 	public static Path getUnionPathRealPath(Path path) {
 		if (path.getClass().getName().contains("Union")) {
-			if (path.getClass().getName().contains("Union")) {
-				var pc = path.getClass();
-				var old = setModule(pc.getModule(), Utils.class);
-				try {
-					var fsf = pc.getDeclaredField("fileSystem");
-					fsf.setAccessible(true);
-					var fs = fsf.get(path);
-					var fsc = fs.getClass();
-					var findFirstFilteredMethod = fsc.getDeclaredMethod("findFirstFiltered", pc);
-					findFirstFilteredMethod.setAccessible(true);
-					var ret = (Optional<Path>) findFirstFilteredMethod.invoke(fs, path);
-					setModule(old, Utils.class);
-					return ret.get();
-				} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException
-						| NoSuchMethodException | InvocationTargetException e) {
-					throw new RuntimeException(e);
-				}
+			var pc = path.getClass();
+			var old = setModule(pc.getModule(), Utils.class);
+			try {
+				var fsf = pc.getDeclaredField("fileSystem");
+				fsf.setAccessible(true);
+				var fs = fsf.get(path);
+				var fsc = fs.getClass();
+				var findFirstFilteredMethod = fsc.getDeclaredMethod("findFirstFiltered", pc);
+				findFirstFilteredMethod.setAccessible(true);
+				var ret = (Optional<Path>) findFirstFilteredMethod.invoke(fs, path);
+				setModule(old, Utils.class);
+				return ret.orElseThrow();
+			} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException
+					| NoSuchMethodException | InvocationTargetException e) {
+				throw new RuntimeException(e);
 			}
 		}
 		return path;
@@ -71,7 +72,7 @@ public class Utils {
 	}
 
 	@FunctionalInterface
-	public static interface PredicateThrowable<T, E extends Throwable> {
+	public interface PredicateThrowable<T, E extends Throwable> {
 		/**
 		 * Evaluates this predicate on the given argument.
 		 *
