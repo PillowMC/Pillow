@@ -9,7 +9,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 import java.util.Optional;
-import java.util.function.Predicate;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 import net.neoforged.fml.loading.FMLLoader;
@@ -69,28 +68,5 @@ public class Utils {
 		var old = class_.getModule();
 		unsafe.putObject(class_, offset, new_);
 		return old;
-	}
-
-	@FunctionalInterface
-	public interface PredicateThrowable<T, E extends Throwable> {
-		/**
-		 * Evaluates this predicate on the given argument.
-		 *
-		 * @param t
-		 *            the input argument
-		 * @return {@code true} if the input argument matches the predicate, otherwise
-		 *         {@code false}
-		 */
-		boolean test(T t) throws E;
-	}
-
-	public static <T, E extends Throwable> Predicate<T> rethrowPredicate(PredicateThrowable<T, E> perdicateThrowable) {
-		return (v) -> {
-			try {
-				return perdicateThrowable.test(v);
-			} catch (Throwable throwable) {
-				throw new RuntimeException(throwable);
-			}
-		};
 	}
 }

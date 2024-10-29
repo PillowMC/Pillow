@@ -1,4 +1,4 @@
 {
     "modmenu.nameTranslation.pillow-loader": "枕头模组加载器",
-    "modmenu.descriptionTranslation.pillow-loader": "让 Quilt 加载器和 FML 在 ModLauncher 和反混淆后的 Minecraft（Mojang 反映射表）上运行。"
+    "modmenu.descriptionTranslation.pillow-loader": "让 Fabric 加载器和 FML 在 ModLauncher 和反混淆后的 Minecraft（Mojang 反映射表）上运行。"
 }

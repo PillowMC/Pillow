@@ -11,8 +11,8 @@ on:
         description: 'NeoForge version'
         type: string
         required: true
-      quilt_v:
-        description: 'Quilt Loader version'
+      fabric_v:
+        description: 'Fabric Loader version'
         type: string
         required: true
       do_release:
@@ -39,7 +39,7 @@ jobs:
       - name: Generate installer
         run: |
           wget https://maven.neoforged.net/releases/net/neoforged/neoforge/${{ inputs.neo_v }}/neoforge-${{ inputs.neo_v }}-installer.jar
-          ./geninstaller.sh neoforge-${{ inputs.neo_v }}-installer.jar pillow-${{ inputs.pillow_v }}-installer.jar ${{ inputs.pillow_v }} ${{ inputs.quilt_v }}
+          ./geninstaller.sh neoforge-${{ inputs.neo_v }}-installer.jar pillow-${{ inputs.pillow_v }}-installer.jar ${{ inputs.pillow_v }} ${{ inputs.fabric_v }}
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -50,4 +50,4 @@ jobs:
         with:
           tag_name: v${{ inputs.pillow_v }}
           files: pillow-${{ inputs.pillow_v }}-installer.jar
-          body: Installer is from NeoForge ${{ inputs.neo_v }}, with Quilt Loader ${{ inputs.quilt_v }}.
+          body: Installer is from NeoForge ${{ inputs.neo_v }}, with Fabric Loader ${{ inputs.fabric_v }}.

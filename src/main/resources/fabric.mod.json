@@ -1,0 +1,20 @@
+{
+    "id": "pillow-loader",
+    "version": "${version}",
+    "name": "Pillow Mod Loader",
+    "description": "Allows Fabric Loader and FML work on ModLauncher with deobfuscated Minecraft (Mojang Mappings), which NeoForge uses.",
+    "contributors": ["PillowMC"],
+    "contact": {
+        "homepage": "https://pillowmc.github.io",
+        "issues": "https://github.com/PillowMC/Pillow/issues",
+        "sources": "https://github.com/PillowMC/Pillow"
+    },
+    "license": "MIT",
+    "icon": "assets/pillow/icon.png",
+    "custom": {
+        "modmenu": {
+            "badges": ["library"]
+        }
+    },
+    "schemaVersion": 1
+}

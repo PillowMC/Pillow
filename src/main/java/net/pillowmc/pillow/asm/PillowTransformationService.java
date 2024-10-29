@@ -27,6 +27,7 @@ import java.util.jar.Manifest;
 import java.util.stream.Stream;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
+import net.fabricmc.loader.impl.ModContainerImpl;
 import net.fabricmc.loader.impl.game.GameProvider;
 import net.fabricmc.loader.impl.game.minecraft.Log4jLogHandler;
 import net.fabricmc.loader.impl.launch.FabricLauncherBase;
@@ -60,19 +61,45 @@ public class PillowTransformationService extends FabricLauncherBase implements I
 		Log.info(LogCategory.GAME_PROVIDER, "Loading %s %s with Fabric Loader %s", provider.getGameName(),
 				provider.getRawGameVersion(), FabricLoaderImpl.VERSION);
 		provider.initialize(this);
-		// Copy legacyClassPath to java.class.path for QuiltForkComms
-		System.setProperty("java.class.path", System.getProperty("legacyClassPath"));
-		// It's time for Quilt!
+		// It's time for Fabric!
 		FabricLoaderImpl loader = FabricLoaderImpl.INSTANCE;
 		loader.setGameProvider(provider);
 		loader.load();
 		try {
-			loader.freeze(); // TODO: Do this by ourselves.
+			doFreeze();
 		} catch (RuntimeException e) {
 			if (e.getMessage().startsWith("Failed to instantiate language adapter: ")) {
 				this.hasLanguageAdapter = true;
 			} else {
 				throw e;
+			}
+		}
+	}
+
+	private void doFreeze(){
+		FabricLoaderImpl loader = FabricLoaderImpl.INSTANCE;
+        try {
+            var frozen = FabricLoaderImpl.class.getDeclaredField("frozen");
+			var module = Utils.setModule(FabricLoaderImpl.class.getModule(), this.getClass());
+			frozen.setAccessible(true);
+			Utils.setModule(module, this.getClass());
+			frozen.setBoolean(loader, true);
+
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+        for (ModContainerImpl mod : loader.getModsInternal()) {
+			if (!mod.getMetadata().getId().equals(FabricLoaderImpl.MOD_ID) && !mod.getMetadata().getType().equals("builtin")) {
+				for (Path path : mod.getCodeSourcePaths()) {
+					if (NO_LOAD_MODS.contains(mod.getMetadata().getId()))
+						return;
+					if (!mod.getMetadata().getLanguageAdapterDefinitions().isEmpty()) {
+						hasLanguageAdapter = true;
+						plugincp.add(path);
+					} else {
+						cp.add(path);
+					}
+				}
 			}
 		}
 	}
@@ -83,7 +110,7 @@ public class PillowTransformationService extends FabricLauncherBase implements I
 			return List.of();
 		var modContents = new JarContentsBuilder().paths(plugincp.toArray(new Path[0]))
 				.pathFilter(this::filterPackagesPluginLayer).build();
-		var modJar = SecureJar.from(modContents, createJarMetadata(modContents, "quiltLanguageMods"));
+		var modJar = SecureJar.from(modContents, createJarMetadata(modContents, "fabricLanguageMods"));
 		var modResource = new Resource(Layer.PLUGIN, List.of(modJar));
 		return List.of(modResource);
 	}
@@ -107,10 +134,10 @@ public class PillowTransformationService extends FabricLauncherBase implements I
 		}
 		if (cp.isEmpty())
 			return List.of();
-		// We merge all Quilt mods into one module.
+		// We merge all Fabric mods into one module.
 		var modContents = new JarContentsBuilder().paths(cp.toArray(new Path[0])).pathFilter(this::filterPackages)
 				.build();
-		var modJar = SecureJar.from(modContents, createJarMetadata(modContents, "quiltMods"));
+		var modJar = SecureJar.from(modContents, createJarMetadata(modContents, "fabricMods"));
 		var modResource = new Resource(Layer.GAME, List.of(modJar));
 		var dfuJar = SecureJar
 				.from(LibraryFinder.findPathForMaven("com.mojang", "datafixerupper", "", "", DFU_VERSION));
@@ -118,9 +145,9 @@ public class PillowTransformationService extends FabricLauncherBase implements I
 		return List.of(modResource, depResource);
 	}
 
-	// NeoForge offers some libraries that Quilt doesn't offer.
+	// NeoForge offers some libraries that Fabric doesn't offer.
 	// Some of the mods includes these libraries.
-	// So we remove these packages from quiltMods to make the module system happy.
+	// So we remove these packages from fabricMods to make the module system happy.
 	// But... Who includes LWJGL??? IDK but without this in NO_LOAD_PACKAGES,
 	// Replay Mod will crash.
 	// However, I didn't find org/lwjgl in Replay Mod.
@@ -212,7 +239,7 @@ public class PillowTransformationService extends FabricLauncherBase implements I
 
 	@Override
 	public ClassLoader getTargetClassLoader() {
-		// Let Quilt get the real location of itself, and Pillow.
+		// Let Fabric get the real location of itself, and Pillow.
 		var trace = Thread.currentThread().getStackTrace();
 		if (trace[2].getClassName().contains("ClasspathModCandidateFinder")
 				&& trace[2].getMethodName().equals("findCandidates"))

@@ -24,13 +24,13 @@ public class PillowConnector implements IMixinConnector {
 	@Override
 	public void connect() {
 		var manager = Launcher.INSTANCE.findLayerManager().orElseThrow();
-		var languageMods = manager.getLayer(Layer.GAME).orElseThrow().findModule("quiltLanguageMods").orElse(null);
-		var mods = manager.getLayer(Layer.GAME).orElseThrow().findModule("quiltMods").orElse(null);
+		var languageMods = manager.getLayer(Layer.GAME).orElseThrow().findModule("fabricLanguageMods").orElse(null);
+		var mods = manager.getLayer(Layer.GAME).orElseThrow().findModule("fabricMods").orElse(null);
 		if (mods == null && languageMods == null)
-			return; // No Quilt Mod installed.
+			return; // No Fabric Mod installed.
 		var bootLayer = manager.getLayer(Layer.BOOT).orElseThrow();
 		var loader = bootLayer
-				.findModule(PillowNamingContext.isUserDev ? "org.quiltmc.loader.beta._2" : "org.quiltmc.loader")
+				.findModule("org.fabricmc.fabric-loader")
 				.orElseThrow();
 		var selfModule = getClass().getModule();
 		if (mods != null) {
@@ -52,7 +52,7 @@ public class PillowConnector implements IMixinConnector {
 		}
 		Utils.setModule(selfModule, getClass());
 		var mappings = FabricLauncherBase.getLauncher().getMappingConfiguration().getMappings();
-		// QuiltMixinBootstrap.init
+		// FabricMixinBootstrap.init
 		System.setProperty("mixin.env.remapRefMap", "true");
 		try {
 			MixinIntermediaryDevRemapper remapper = new MixinIntermediaryDevRemapper(mappings,

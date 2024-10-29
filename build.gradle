@@ -43,14 +43,6 @@ repositories {
         url = 'https://maven.fabricmc.net/'
     }
     maven {
-        name = 'QuiltMC Release'
-        url = 'https://maven.quiltmc.org/repository/release/'
-    }
-    maven {
-        name = 'QuiltMC Snapshot'
-        url = 'https://maven.quiltmc.org/repository/snapshot/'
-    }
-    maven {
         url "https://maven.neoforged.net/releases"
     }
     maven {
@@ -68,7 +60,7 @@ dependencies {
     implementation "cpw.mods:modlauncher:11.0.2"
     implementation "cpw.mods:securejarhandler:3.0.4"
     implementation "org.jetbrains:annotations:24.1.0"
-    api "net.fabricmc:sponge-mixin:0.13.1+mixin.0.8.5"
+    api "net.fabricmc:sponge-mixin:0.15.4+mixin.0.8.7"
     api ("net.fabricmc:fabric-loader:0.16.8") {
         exclude group: "org.ow2.asm"
     }
@@ -80,7 +72,7 @@ dependencies {
 processResources {
     inputs.property "version", project.version
 
-    filesMatching("quilt.mod.json") {
+    filesMatching("fabric.mod.json") {
         expand "version": project.version
     }
 }

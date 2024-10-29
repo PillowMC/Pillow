@@ -27,9 +27,9 @@ $A(0, a), B(1, a), C(1, 0), D(0, 0), E(0, a-b), F(1, b)$,
 
 连接 $BD$, 作 $CG$ 交 $G$ 使 $CG$ 延长线过 $A$ 为 Shear API 图标
 
-## 运行在 ModLauncher 上的 Quilt 和 Fancy Mod Loader
+## 运行在 ModLauncher 上的 Fabric 和 Fancy Mod Loader
 
-这个模组会让 Quilt 加载器和 Fancy Mod Loader 在 ModLauncher 上和以 Searge 名混淆的 Minecraft 运行。
+这个模组会让 Fabric 加载器和 Fancy Mod Loader 在 ModLauncher 上和以 Searge 名混淆的 Minecraft 运行。
 
 ## 开发进度
 几乎已经完成。

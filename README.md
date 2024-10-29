@@ -26,9 +26,9 @@ Connect $AE, AC$ is the Pillow Mod Loader icon
 
 Connect $BD$ and make $CG$ cross $G$ to make the extension line of $CG$ pass through $A$ as the Shear API icon
 
-## Run Quilt and Fancy Mod Loader on ModLauncher together
+## Run Fabric and Fancy Mod Loader on ModLauncher together
 
-This mod can let Quilt Loader and Fancy Mod Loader run on the top of ModLauncher with Minecraft obfuscated with Searge name.
+This mod can let Fabric Loader and Fancy Mod Loader run on the top of ModLauncher with Minecraft obfuscated with Searge name.
 
 ## Developing Status
 Almost done.
