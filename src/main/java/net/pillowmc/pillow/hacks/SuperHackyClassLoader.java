@@ -12,14 +12,14 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Enumeration;
+import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 import net.pillowmc.pillow.Utils;
-import org.quiltmc.loader.impl.launch.common.QuiltLauncherBase;
 
 public class SuperHackyClassLoader extends ClassLoader {
 	@Override
 	public Enumeration<URL> getResources(String name) throws IOException {
-		if (name.equals("quilt.mod.json")) {
-			var urls = QuiltLauncherBase.getLauncher().getTargetClassLoader().getResources(name);
+		if (name.equals("fabric.mod.json")) {
+			var urls = FabricLauncherBase.getLauncher().getTargetClassLoader().getResources(name);
 			return new Enumeration<>() {
 				@Override
 				public boolean hasMoreElements() {

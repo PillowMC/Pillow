@@ -10,7 +10,6 @@ import cpw.mods.jarhandling.JarContentsBuilder;
 import cpw.mods.jarhandling.JarMetadata;
 import cpw.mods.jarhandling.SecureJar;
 import cpw.mods.jarhandling.impl.SimpleJarMetadata;
-import cpw.mods.modlauncher.Launcher;
 import cpw.mods.modlauncher.api.IEnvironment;
 import cpw.mods.modlauncher.api.IModuleLayerManager;
 import cpw.mods.modlauncher.api.IModuleLayerManager.Layer;
@@ -21,71 +20,28 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.lang.reflect.InvocationTargetException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.spi.FileSystemProvider;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.jar.Manifest;
 import java.util.stream.Stream;
-
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.impl.FabricLoaderImpl;
+import net.fabricmc.loader.impl.game.GameProvider;
+import net.fabricmc.loader.impl.game.minecraft.Log4jLogHandler;
+import net.fabricmc.loader.impl.launch.FabricLauncherBase;
+import net.fabricmc.loader.impl.util.log.Log;
+import net.fabricmc.loader.impl.util.log.LogCategory;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.fml.loading.LibraryFinder;
 import net.pillowmc.pillow.PillowGameProvider;
 import net.pillowmc.pillow.Utils;
 import net.pillowmc.pillow.hacks.SuperHackyClassLoader;
 import org.jetbrains.annotations.NotNull;
-import org.quiltmc.loader.api.ModContainer;
-import org.quiltmc.loader.api.plugin.ModMetadataExt;
-import org.quiltmc.loader.impl.QuiltLoaderImpl;
-import org.quiltmc.loader.impl.config.QuiltConfigImpl;
-import org.quiltmc.loader.impl.entrypoint.GameTransformer;
-import org.quiltmc.loader.impl.filesystem.QuiltJoinedFileSystemProvider;
-import org.quiltmc.loader.impl.filesystem.QuiltMemoryFileSystemProvider;
-import org.quiltmc.loader.impl.filesystem.QuiltUnifiedFileSystemProvider;
-import org.quiltmc.loader.impl.filesystem.QuiltZipFileSystemProvider;
-import org.quiltmc.loader.impl.game.GameProvider;
-import org.quiltmc.loader.impl.game.minecraft.Log4jLogHandler;
-import org.quiltmc.loader.impl.launch.common.QuiltLauncherBase;
-import org.quiltmc.loader.impl.plugin.gui.I18n;
-import org.quiltmc.loader.impl.util.SystemProperties;
-import org.quiltmc.loader.impl.util.log.Log;
-import org.quiltmc.loader.impl.util.log.LogCategory;
 
-public class PillowTransformationService extends QuiltLauncherBase implements ITransformationService {
+public class PillowTransformationService extends FabricLauncherBase implements ITransformationService {
 	private static final String DFU_VERSION = "7.0.14";
 	private boolean hasLanguageAdapter = false;
-	@SuppressWarnings("unchecked")
-	public PillowTransformationService() {
-		var layer = Launcher.INSTANCE.findLayerManager().orElseThrow().getLayer(Layer.BOOT).orElseThrow();
-		Utils.setModule(Thread.currentThread().getContextClassLoader().getUnnamedModule(), I18n.class);
-		// Remove other mixin services. These services may not work well.
-		try {
-			var field = layer.getClass().getDeclaredField("servicesCatalog");
-			var old = Utils.setModule(layer.getClass().getModule(), PillowTransformationService.class);
-			field.setAccessible(true);
-			var catalog = field.get(layer);
-			var mapField = catalog.getClass().getDeclaredField("map");
-			mapField.setAccessible(true);
-			var map = (Map<String, List<Object>>) mapField.get(catalog);
-			map.get("org.spongepowered.asm.service.IMixinService").removeIf(Utils.rethrowPredicate(
-					v -> !"pillow".equals(((Module) v.getClass().getMethod("module").invoke(v)).getName())));
-			map.get("org.spongepowered.asm.service.IMixinServiceBootstrap").removeIf(Utils.rethrowPredicate(
-					v -> "org.quiltmc.loader".equals(((Module) v.getClass().getMethod("module").invoke(v)).getName())));
-			map.get("org.spongepowered.asm.service.IGlobalPropertyService").removeIf(Utils.rethrowPredicate(
-					v -> "org.quiltmc.loader".equals(((Module) v.getClass().getMethod("module").invoke(v)).getName())));
-			Utils.setModule(old, PillowTransformationService.class);
-		} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
-			throw new RuntimeException(e);
-		}
-	}
 
 	@Override
 	public @NotNull String name() {
@@ -97,41 +53,21 @@ public class PillowTransformationService extends QuiltLauncherBase implements IT
 	public void initialize(IEnvironment environment) {
 		setProperties(new HashMap<>());
 		setupUncaughtExceptionHandler();
-		setupURLHandlers();
-		// Add Quilt's FileSystemProviders.
-		try {
-			var FSPC = FileSystemProvider.class;
-			var old = Utils.setModule(FSPC.getModule(), getClass());
-			var installedProviders = FSPC.getDeclaredField("installedProviders");
-			installedProviders.setAccessible(true);
-			@SuppressWarnings("unchecked")
-			var val = (List<FileSystemProvider>) installedProviders.get(null);
-			var newval = new ArrayList<>(val);
-			newval.removeIf(i -> i.getClass().getName().contains("Quilt"));
-			newval.add(new QuiltMemoryFileSystemProvider());
-			newval.add(new QuiltJoinedFileSystemProvider());
-			newval.add(new QuiltUnifiedFileSystemProvider());
-			newval.add(new QuiltZipFileSystemProvider());
-			installedProviders.set(null, Collections.unmodifiableList(newval));
-			Utils.setModule(old, getClass());
-		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
-			throw new RuntimeException(e);
-		}
 		provider = new PillowGameProvider();
-		Log.init(new Log4jLogHandler(), true);
+		Log.init(new Log4jLogHandler());
 		// Maybe tomorrow's Pillow Loader uses this?
 		provider.locateGame(this, new String[0]);
-		Log.info(LogCategory.GAME_PROVIDER, "Loading %s %s with Quilt Loader %s", provider.getGameName(),
-				provider.getRawGameVersion(), QuiltLoaderImpl.VERSION);
+		Log.info(LogCategory.GAME_PROVIDER, "Loading %s %s with Fabric Loader %s", provider.getGameName(),
+				provider.getRawGameVersion(), FabricLoaderImpl.VERSION);
 		provider.initialize(this);
 		// Copy legacyClassPath to java.class.path for QuiltForkComms
 		System.setProperty("java.class.path", System.getProperty("legacyClassPath"));
 		// It's time for Quilt!
-		QuiltLoaderImpl loader = QuiltLoaderImpl.INSTANCE;
+		FabricLoaderImpl loader = FabricLoaderImpl.INSTANCE;
 		loader.setGameProvider(provider);
 		loader.load();
 		try {
-			loader.freeze();
+			loader.freeze(); // TODO: Do this by ourselves.
 		} catch (RuntimeException e) {
 			if (e.getMessage().startsWith("Failed to instantiate language adapter: ")) {
 				this.hasLanguageAdapter = true;
@@ -139,19 +75,14 @@ public class PillowTransformationService extends QuiltLauncherBase implements IT
 				throw e;
 			}
 		}
-		QuiltConfigImpl.init();
-	}
-
-	private static void setupURLHandlers() {
-		System.setProperty(SystemProperties.DISABLE_URL_STREAM_FACTORY, "true");
 	}
 
 	@Override
 	public List<Resource> beginScanning(IEnvironment environment) {
 		if (plugincp.isEmpty())
 			return List.of();
-		var modContents = new JarContentsBuilder().paths(plugincp.toArray(new Path[0])).pathFilter(this::filterPackagesPluginLayer)
-				.build();
+		var modContents = new JarContentsBuilder().paths(plugincp.toArray(new Path[0]))
+				.pathFilter(this::filterPackagesPluginLayer).build();
 		var modJar = SecureJar.from(modContents, createJarMetadata(modContents, "quiltLanguageMods"));
 		var modResource = new Resource(Layer.PLUGIN, List.of(modJar));
 		return List.of(modResource);
@@ -160,15 +91,15 @@ public class PillowTransformationService extends QuiltLauncherBase implements IT
 	@Override
 	public List<Resource> completeScan(IModuleLayerManager environment) {
 		if (this.hasLanguageAdapter) {
-			var clazz = QuiltLoaderImpl.class;
+			var clazz = FabricLoaderImpl.class;
 			var old = Utils.setModule(clazz.getModule(), getClass());
 			try {
 				var method = clazz.getDeclaredMethod("setupLanguageAdapters");
 				method.setAccessible(true);
-				method.invoke(QuiltLoaderImpl.INSTANCE);
+				method.invoke(FabricLoaderImpl.INSTANCE);
 				method = clazz.getDeclaredMethod("setupMods");
 				method.setAccessible(true);
-				method.invoke(QuiltLoaderImpl.INSTANCE);
+				method.invoke(FabricLoaderImpl.INSTANCE);
 			} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 				throw new RuntimeException(e);
 			}
@@ -197,14 +128,16 @@ public class PillowTransformationService extends QuiltLauncherBase implements IT
 			"com/electronwill/nightconfig", "org/openjdk/nashorn", "org/apache/maven/artifact",
 			"org/apache/maven/repository", "org/lwjgl", "org/antlr");
 
-	public static final Set<String> NO_LOAD_PACKAGES_PLUGIN_LAYER = loadNoLoads("packages-plugin-layer", "kotlin", "_COROUTINE");
+	public static final Set<String> NO_LOAD_PACKAGES_PLUGIN_LAYER = loadNoLoads("packages-plugin-layer", "kotlin",
+			"_COROUTINE");
 
 	private boolean filterPackages(String entry, Path _basePath) {
 		return NO_LOAD_PACKAGES.stream().noneMatch(entry::startsWith);
 	}
 
 	private boolean filterPackagesPluginLayer(String entry, Path _basePath) {
-		return Stream.concat(NO_LOAD_PACKAGES.stream(), NO_LOAD_PACKAGES_PLUGIN_LAYER.stream()).noneMatch(entry::startsWith);
+		return Stream.concat(NO_LOAD_PACKAGES.stream(), NO_LOAD_PACKAGES_PLUGIN_LAYER.stream())
+				.noneMatch(entry::startsWith);
 	}
 
 	@Override
@@ -241,7 +174,7 @@ public class PillowTransformationService extends QuiltLauncherBase implements IT
 		}
 	}
 
-	// QuiltLauncher start
+	// FabricLauncher start
 
 	@Override
 	public void addToClassPath(Path path, String... allowedPrefixes) {
@@ -250,6 +183,11 @@ public class PillowTransformationService extends QuiltLauncherBase implements IT
 
 	@Override
 	public void setAllowedPrefixes(Path path, String... prefixes) {
+	}
+
+	@Override
+	public void setValidParentClassPath(Collection<Path> paths) {
+
 	}
 
 	@Override
@@ -312,72 +250,5 @@ public class PillowTransformationService extends QuiltLauncherBase implements IT
 	@Override
 	public List<Path> getClassPath() {
 		return Stream.of(System.getProperty("legacyClassPath").split(File.pathSeparator)).map(Path::of).toList();
-	}
-
-	@Override
-	public void addToClassPath(Path path, ModContainer mod, URL origin, String... allowedPrefixes) {
-		if (NO_LOAD_MODS.contains(mod.metadata().id()))
-			return;
-		if (mod.metadata() instanceof ModMetadataExt ext && !ext.languageAdapters().isEmpty()) {
-			plugincp.add(path);
-		} else {
-			cp.add(path);
-		}
-	}
-
-	@Override
-	public void setTransformCache(URL insideTransformCache) {
-	}
-
-	@Override
-	public void hideParentUrl(URL hidden) {
-	}
-
-	@Override
-	public void hideParentPath(Path obf) {
-	}
-
-	@Override
-	public void validateGameClassLoader(Object gameInstance) {
-	}
-
-	@Override
-	public URL getResourceURL(String name) {
-		return getTargetClassLoader().getResource(name);
-	}
-
-	@Override
-	public ClassLoader getClassLoader(ModContainer mod) {
-		if (mod.metadata() instanceof ModMetadataExt ext &&
-			!ext.languageAdapters().isEmpty()) {
-			return Launcher.INSTANCE.findLayerManager().orElseThrow().getLayer(Layer.PLUGIN).orElseThrow().findLoader("quiltLanguageMods");
-		}
-		return getTargetClassLoader();
-	}
-
-	@Override
-	public void setHiddenClasses(Set<String> classes) {
-		// TODO Error when load these classes.
-	}
-
-	@Override
-	public void setHiddenClasses(Map<String, String> classes) {
-		// TODO Error when load these classes.
-	}
-
-	@Override
-	public void setPluginPackages(Map<String, ClassLoader> map) {
-
-	}
-
-	private final GameTransformer gameTransformer = new GameTransformer() {
-		public byte[] transform(String className) {
-			return null;
-		}
-	};
-
-	@Override
-	public GameTransformer getEntrypointTransformer() {
-		return this.gameTransformer;
 	}
 }

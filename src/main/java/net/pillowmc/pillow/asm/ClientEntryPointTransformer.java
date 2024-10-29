@@ -11,10 +11,10 @@ import cpw.mods.modlauncher.api.TargetType;
 import cpw.mods.modlauncher.api.TransformerVoteResult;
 import java.util.ListIterator;
 import java.util.Set;
+import net.fabricmc.loader.impl.game.minecraft.Hooks;
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
-import org.quiltmc.loader.impl.game.minecraft.Hooks;
 
 public class ClientEntryPointTransformer implements ITransformer<MethodNode> {
 	@Override

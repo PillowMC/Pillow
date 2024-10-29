@@ -11,6 +11,7 @@ import cpw.mods.modlauncher.api.TargetType;
 import cpw.mods.modlauncher.api.TransformerVoteResult;
 import java.util.ListIterator;
 import java.util.Set;
+import net.fabricmc.loader.impl.game.minecraft.Hooks;
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
@@ -18,7 +19,6 @@ import org.objectweb.asm.tree.InsnNode;
 import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
-import org.quiltmc.loader.impl.game.minecraft.Hooks;
 
 public class ServerEntryPointTransformer implements ITransformer<MethodNode> {
 	@Override

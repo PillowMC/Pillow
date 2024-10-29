@@ -12,7 +12,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
+import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.api.ModContainer;
 import net.neoforged.fml.loading.moddiscovery.ModFile;
 import net.neoforged.fml.loading.moddiscovery.ModFileInfo;
 import net.neoforged.fml.loading.moddiscovery.NightConfigWrapper;
@@ -21,9 +22,6 @@ import net.neoforged.neoforgespi.locating.IDiscoveryPipeline;
 import net.neoforged.neoforgespi.locating.IModFile;
 import net.neoforged.neoforgespi.locating.IModFileCandidateLocator;
 import net.neoforged.neoforgespi.locating.ModFileDiscoveryAttributes;
-import org.quiltmc.loader.api.ModContainer;
-import org.quiltmc.loader.api.ModLicense;
-import org.quiltmc.loader.api.QuiltLoader;
 
 public class PillowModLocator implements IModFileCandidateLocator {
 
@@ -32,33 +30,32 @@ public class PillowModLocator implements IModFileCandidateLocator {
 
 	@Override
 	public void findCandidates(ILaunchContext context, IDiscoveryPipeline pipeline) {
-		var providedMods = new HashMap<org.quiltmc.loader.api.ModContainer, ArrayList<ProvidedModInfo>>();
+		var providedMods = new HashMap<net.fabricmc.loader.api.ModContainer, ArrayList<ProvidedModInfo>>();
 
-		QuiltLoader.getAllMods().forEach((mod) -> {
-			mod.getSourcePaths().stream().filter((p) -> p.size() == 1) // Exclude JiJ mods.
-					.map(List::getFirst).forEach(context::addLocated);
+		FabricLoader.getInstance().getAllMods().forEach((mod) -> {
+			mod.getOrigin().getPaths().forEach(context::addLocated);
 
-			for (var e : mod.metadata().value("pillow-provided").asObject().entrySet()) {
+			for (var e : mod.getMetadata().getCustomValue("pillow-provided").getAsObject()) {
 				providedMods.computeIfAbsent(mod, (v) -> new ArrayList<>())
-						.add(new ProvidedModInfo(e.getKey(), e.getValue().asString()));
+						.add(new ProvidedModInfo(e.getKey(), e.getValue().getAsString()));
 			}
 		});
 
 		for (var e : providedMods.entrySet()) {
 			pipeline.addModFile(IModFile.create(
-					new VirtualJar(e.getKey().metadata().id().replace('-', '_'), getRefPath(e.getKey())), (mf) -> {
+					new VirtualJar(e.getKey().getMetadata().getId().replace('-', '_'), getRefPath(e.getKey())),
+					(mf) -> {
 						var config = genModFileInfoConf(e.getKey(), e.getValue());
 						return new ModFileInfo((ModFile) mf, config, config::setFile, List.of());
 					}, IModFile.Type.MOD, ModFileDiscoveryAttributes.DEFAULT));
 		}
 	}
 
-	private static NightConfigWrapper genModFileInfoConf(org.quiltmc.loader.api.ModContainer mod,
-			ArrayList<ProvidedModInfo> providedMods) {
+	private static NightConfigWrapper genModFileInfoConf(ModContainer mod, ArrayList<ProvidedModInfo> providedMods) {
 		final var conf = Config.inMemory();
 		conf.set("modLoader", "lowcode");
 		conf.set("loaderVersion", "[0,)");
-		conf.set("license", joinLicenses(mod.metadata().licenses()));
+		conf.set("license", joinLicenses(mod.getMetadata().getLicense()));
 		var mods = new ArrayList<Config>();
 		for (var providedMod : providedMods) {
 			final var modConf = Config.inMemory();
@@ -73,16 +70,15 @@ public class PillowModLocator implements IModFileCandidateLocator {
 		return new NightConfigWrapper(conf);
 	}
 
-	private static String joinLicenses(Collection<ModLicense> c) {
+	private static String joinLicenses(Collection<String> c) {
 		if (c.isEmpty()) {
 			return "All Rights Reserved";
 		}
-		return c.stream().map(ModLicense::name).collect(Collectors.joining(", "));
+		return String.join(", ", c);
 	}
 
 	private static Path getRefPath(ModContainer mod) {
-		var src = mod.getSourcePaths().getFirst();
-		return src.getLast();
+		return mod.getOrigin().getPaths().getLast();
 	}
 
 }

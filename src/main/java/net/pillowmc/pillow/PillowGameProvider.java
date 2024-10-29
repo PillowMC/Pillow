@@ -13,21 +13,24 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.impl.game.GameProvider;
+import net.fabricmc.loader.impl.game.GameProviderHelper;
+import net.fabricmc.loader.impl.game.patch.GameTransformer;
+import net.fabricmc.loader.impl.launch.FabricLauncher;
+import net.fabricmc.loader.impl.metadata.BuiltinModMetadata;
+import net.fabricmc.loader.impl.util.Arguments;
+import net.fabricmc.loader.impl.util.SystemProperties;
 import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.fml.loading.LibraryFinder;
-import org.quiltmc.loader.api.Version;
-import org.quiltmc.loader.impl.entrypoint.GameTransformer;
-import org.quiltmc.loader.impl.game.GameProvider;
-import org.quiltmc.loader.impl.game.GameProviderHelper;
-import org.quiltmc.loader.impl.launch.common.QuiltLauncher;
-import org.quiltmc.loader.impl.launch.common.QuiltLauncherBase;
-import org.quiltmc.loader.impl.metadata.qmj.V1ModMetadataBuilder;
-import org.quiltmc.loader.impl.util.Arguments;
-import org.quiltmc.loader.impl.util.SystemProperties;
 
 public class PillowGameProvider implements GameProvider {
 	private String[] args;
+	private final GameTransformer gameTransformer = new GameTransformer() {
+		public byte[] transform(String className) {
+			return null;
+		}
+	};
 
 	@Override
 	public String getGameId() {
@@ -51,11 +54,9 @@ public class PillowGameProvider implements GameProvider {
 
 	@Override
 	public Collection<BuiltinMod> getBuiltinMods() {
-		V1ModMetadataBuilder minecraftMetadata = new V1ModMetadataBuilder();
-		minecraftMetadata.setId(getGameId());
-		minecraftMetadata.setVersion(Version.of(getRawGameVersion()));
+		BuiltinModMetadata.Builder minecraftMetadata = new BuiltinModMetadata.Builder(getGameId(),
+				getNormalizedGameVersion());
 		minecraftMetadata.setName(getGameName());
-		minecraftMetadata.setGroup("builtin");
 		minecraftMetadata.setDescription(
 				"Deobfuscated, NeoForm version = %s".formatted(FMLLoader.versionInfo().neoFormVersion()));
 		Path path;
@@ -98,13 +99,13 @@ public class PillowGameProvider implements GameProvider {
 	}
 
 	@Override
-	public boolean locateGame(QuiltLauncher launcher, String[] args) {
+	public boolean locateGame(FabricLauncher launcher, String[] args) {
 		this.args = args;
 		return true;
 	}
 
 	@Override
-	public void initialize(QuiltLauncher launcher) {
+	public void initialize(FabricLauncher launcher) {
 		var side = Utils.getSide().name().toLowerCase();
 		var mc = LibraryFinder.findPathForMaven("net.minecraft", side, "", "slim",
 				FMLLoader.versionInfo().mcAndNeoFormVersion());
@@ -126,11 +127,11 @@ public class PillowGameProvider implements GameProvider {
 
 	@Override
 	public GameTransformer getEntrypointTransformer() {
-		return QuiltLauncherBase.getLauncher().getEntrypointTransformer();
+		return gameTransformer;
 	}
 
 	@Override
-	public void unlockClassPath(QuiltLauncher launcher) {
+	public void unlockClassPath(FabricLauncher launcher) {
 	}
 
 	@Override

@@ -11,8 +11,8 @@ import java.nio.file.Path;
 import java.util.Optional;
 import java.util.function.Predicate;
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.impl.util.log.LogCategory;
 import net.neoforged.fml.loading.FMLLoader;
-import org.quiltmc.loader.impl.util.log.LogCategory;
 import sun.misc.Unsafe;
 
 public class Utils {
