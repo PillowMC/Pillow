@@ -26,6 +26,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: PillowMC/pillow-install-meta
+          ref: fabric
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
