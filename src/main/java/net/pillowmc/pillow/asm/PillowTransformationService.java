@@ -273,6 +273,10 @@ public class PillowTransformationService extends FabricLauncherBase implements I
 		if (trace[2].getClassName().contains("ClasspathModCandidateFinder")
 				&& trace[2].getMethodName().equals("findCandidates"))
 			return new SuperHackyClassLoader();
+		if (trace[2].getMethodName().equals("setupLanguageAdapters")) {
+			return Launcher.INSTANCE.findLayerManager().orElseThrow().getLayer(Layer.PLUGIN).orElseThrow()
+					.findLoader("fabricLanguageMods");
+		}
 		return Thread.currentThread().getContextClassLoader();
 	}
 
