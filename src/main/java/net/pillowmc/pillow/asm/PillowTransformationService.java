@@ -10,6 +10,7 @@ import cpw.mods.jarhandling.JarContentsBuilder;
 import cpw.mods.jarhandling.JarMetadata;
 import cpw.mods.jarhandling.SecureJar;
 import cpw.mods.jarhandling.impl.SimpleJarMetadata;
+import cpw.mods.modlauncher.Launcher;
 import cpw.mods.modlauncher.api.IEnvironment;
 import cpw.mods.modlauncher.api.IModuleLayerManager;
 import cpw.mods.modlauncher.api.IModuleLayerManager.Layer;
@@ -41,12 +42,37 @@ import net.pillowmc.pillow.hacks.SuperHackyClassLoader;
 import org.jetbrains.annotations.NotNull;
 
 public class PillowTransformationService extends FabricLauncherBase implements ITransformationService {
-	private static final String DFU_VERSION = "7.0.14";
+	private static final String DFU_VERSION = "8.0.16";
 	private boolean hasLanguageAdapter = false;
 
 	@Override
 	public @NotNull String name() {
 		return "pillow";
+	}
+	@SuppressWarnings("unchecked")
+	public PillowTransformationService() {
+		var layer = Launcher.INSTANCE.findLayerManager().orElseThrow().getLayer(Layer.BOOT).orElseThrow();
+		// Remove Fabric's mixin service, which may not work well.
+		try {
+			var field = layer.getClass().getDeclaredField("servicesCatalog");
+			var old = Utils.setModule(layer.getClass().getModule(), PillowTransformationService.class);
+			field.setAccessible(true);
+			var catalog = field.get(layer);
+			var mapField = catalog.getClass().getDeclaredField("map");
+			mapField.setAccessible(true);
+			var map = (Map<String, List<Object>>) mapField.get(catalog);
+			map.get("org.spongepowered.asm.service.IMixinService").removeIf(Utils.rethrowPredicate(
+					v -> !"pillow".equals(((Module) v.getClass().getMethod("module").invoke(v)).getName())));
+			map.get("org.spongepowered.asm.service.IMixinServiceBootstrap")
+					.removeIf(Utils.rethrowPredicate(v -> "net.fabricmc.loader"
+							.equals(((Module) v.getClass().getMethod("module").invoke(v)).getName())));
+			map.get("org.spongepowered.asm.service.IGlobalPropertyService")
+					.removeIf(Utils.rethrowPredicate(v -> "net.fabricmc.loader"
+							.equals(((Module) v.getClass().getMethod("module").invoke(v)).getName())));
+			Utils.setModule(old, PillowTransformationService.class);
+		} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
@@ -76,20 +102,21 @@ public class PillowTransformationService extends FabricLauncherBase implements I
 		}
 	}
 
-	private void doFreeze(){
+	private void doFreeze() {
 		FabricLoaderImpl loader = FabricLoaderImpl.INSTANCE;
-        try {
-            var frozen = FabricLoaderImpl.class.getDeclaredField("frozen");
+		try {
+			var frozen = FabricLoaderImpl.class.getDeclaredField("frozen");
 			var module = Utils.setModule(FabricLoaderImpl.class.getModule(), this.getClass());
 			frozen.setAccessible(true);
 			Utils.setModule(module, this.getClass());
 			frozen.setBoolean(loader, true);
 
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-        for (ModContainerImpl mod : loader.getModsInternal()) {
-			if (!mod.getMetadata().getId().equals(FabricLoaderImpl.MOD_ID) && !mod.getMetadata().getType().equals("builtin")) {
+		} catch (NoSuchFieldException | IllegalAccessException e) {
+			throw new RuntimeException(e);
+		}
+		for (ModContainerImpl mod : loader.getModsInternal()) {
+			if (!mod.getMetadata().getId().equals(FabricLoaderImpl.MOD_ID)
+					&& !mod.getMetadata().getType().equals("builtin")) {
 				for (Path path : mod.getCodeSourcePaths()) {
 					if (NO_LOAD_MODS.contains(mod.getMetadata().getId()))
 						return;
@@ -261,7 +288,7 @@ public class PillowTransformationService extends FabricLauncherBase implements I
 	public boolean isDevelopment() {
 		var trace = Thread.currentThread().getStackTrace();
 		return trace[2].getClassName().contains("ClasspathModCandidateFinder")
-				|| trace[4].getMethodName().equals("scan0");
+				|| trace[4].getMethodName().equals("scan0") || trace[3].getMethodName().equals("setup");
 	}
 
 	@Override

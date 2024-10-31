@@ -29,9 +29,7 @@ public class PillowConnector implements IMixinConnector {
 		if (mods == null && languageMods == null)
 			return; // No Fabric Mod installed.
 		var bootLayer = manager.getLayer(Layer.BOOT).orElseThrow();
-		var loader = bootLayer
-				.findModule("org.fabricmc.fabric-loader")
-				.orElseThrow();
+		var loader = bootLayer.findModule("net.fabricmc.loader").orElseThrow();
 		var selfModule = getClass().getModule();
 		if (mods != null) {
 			Utils.setModule(mods, getClass());

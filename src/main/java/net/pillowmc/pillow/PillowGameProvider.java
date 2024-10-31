@@ -31,6 +31,7 @@ public class PillowGameProvider implements GameProvider {
 			return null;
 		}
 	};
+	private Path deobfMC;
 
 	@Override
 	public String getGameId() {
@@ -109,7 +110,7 @@ public class PillowGameProvider implements GameProvider {
 		var side = Utils.getSide().name().toLowerCase();
 		var mc = LibraryFinder.findPathForMaven("net.minecraft", side, "", "slim",
 				FMLLoader.versionInfo().mcAndNeoFormVersion());
-		var deobf = GameProviderHelper
+		this.deobfMC = GameProviderHelper
 				.deobfuscate(Map.of(side, mc), getGameId(), getNormalizedGameVersion(), getLaunchDirectory(), launcher)
 				.get(side);
 		try {
@@ -118,7 +119,7 @@ public class PillowGameProvider implements GameProvider {
 				Files.createDirectory(pillowdir);
 			}
 			var rcp = pillowdir.resolve("remapClasspath.txt");
-			Files.writeString(rcp, deobf.toString());
+			Files.writeString(rcp, this.deobfMC.toString());
 			System.setProperty(SystemProperties.REMAP_CLASSPATH_FILE, rcp.toString());
 		} catch (IOException e) {
 			throw new UncheckedIOException("Cannot generate remapClasspath!", e);

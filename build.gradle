@@ -56,8 +56,8 @@ configurations {
 }
 
 dependencies {
-    implementation "net.neoforged.fancymodloader:loader:3.0.19"
-    implementation "cpw.mods:modlauncher:11.0.2"
+    implementation "net.neoforged.fancymodloader:loader:4.0.31"
+    implementation "cpw.mods:modlauncher:11.0.4"
     implementation "cpw.mods:securejarhandler:3.0.4"
     implementation "org.jetbrains:annotations:24.1.0"
     api "net.fabricmc:sponge-mixin:0.15.4+mixin.0.8.7"
