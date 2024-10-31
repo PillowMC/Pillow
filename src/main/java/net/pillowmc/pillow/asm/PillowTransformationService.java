@@ -100,6 +100,7 @@ public class PillowTransformationService extends FabricLauncherBase implements I
 				throw e;
 			}
 		}
+		FabricLoaderImpl.INSTANCE.loadAccessWideners();
 	}
 
 	private void doFreeze() {
@@ -117,11 +118,14 @@ public class PillowTransformationService extends FabricLauncherBase implements I
 		for (ModContainerImpl mod : loader.getModsInternal()) {
 			if (!mod.getMetadata().getId().equals(FabricLoaderImpl.MOD_ID)
 					&& !mod.getMetadata().getType().equals("builtin")) {
+				if (NO_LOAD_MODS.contains(mod.getMetadata().getId()))
+					continue;
+				boolean islang = !mod.getMetadata().getLanguageAdapterDefinitions().isEmpty();
+				if (islang) {
+					hasLanguageAdapter = true;
+				}
 				for (Path path : mod.getCodeSourcePaths()) {
-					if (NO_LOAD_MODS.contains(mod.getMetadata().getId()))
-						return;
-					if (!mod.getMetadata().getLanguageAdapterDefinitions().isEmpty()) {
-						hasLanguageAdapter = true;
+					if (islang) {
 						plugincp.add(path);
 					} else {
 						cp.add(path);
@@ -144,21 +148,19 @@ public class PillowTransformationService extends FabricLauncherBase implements I
 
 	@Override
 	public List<Resource> completeScan(IModuleLayerManager environment) {
-		if (this.hasLanguageAdapter) {
-			var clazz = FabricLoaderImpl.class;
-			var old = Utils.setModule(clazz.getModule(), getClass());
-			try {
-				var method = clazz.getDeclaredMethod("setupLanguageAdapters");
-				method.setAccessible(true);
-				method.invoke(FabricLoaderImpl.INSTANCE);
-				method = clazz.getDeclaredMethod("setupMods");
-				method.setAccessible(true);
-				method.invoke(FabricLoaderImpl.INSTANCE);
-			} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-				throw new RuntimeException(e);
-			}
-			Utils.setModule(old, getClass());
+		var clazz = FabricLoaderImpl.class;
+		var old = Utils.setModule(clazz.getModule(), getClass());
+		try {
+			var method = clazz.getDeclaredMethod("setupLanguageAdapters");
+			method.setAccessible(true);
+			method.invoke(FabricLoaderImpl.INSTANCE);
+			method = clazz.getDeclaredMethod("setupMods");
+			method.setAccessible(true);
+			method.invoke(FabricLoaderImpl.INSTANCE);
+		} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+			throw new RuntimeException(e);
 		}
+		Utils.setModule(old, getClass());
 		if (cp.isEmpty())
 			return List.of();
 		// We merge all Fabric mods into one module.
@@ -202,7 +204,7 @@ public class PillowTransformationService extends FabricLauncherBase implements I
 	public @NotNull List<ITransformer<?>> transformers() {
 		return List.of(Utils.getSide() == EnvType.CLIENT
 				? new ClientEntryPointTransformer()
-				: new ServerEntryPointTransformer());
+				: new ServerEntryPointTransformer(), new AWTransformer());
 	}
 
 	public static JarMetadata createJarMetadata(JarContents contents, String name) {

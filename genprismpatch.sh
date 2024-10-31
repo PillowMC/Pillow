@@ -40,7 +40,7 @@ then
     rm -r genmappings
 fi
 echo Building...
-./gradlew build publishToMavenLocal
+./gradlew spotlessApply build publishToMavenLocal
 echo Done.
 cat > net.pillowmc.pillow.json << EOF
 {
