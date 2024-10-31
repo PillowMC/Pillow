@@ -56,7 +56,7 @@ public class PillowClientProvider implements IModFileCandidateLocator {
 		}
 
 		// PillowMC: Added additionalFiles (3 lines)
-        content.addAll(additionalFiles);
+		content.addAll(additionalFiles);
 
 		try {
 			var mcJarContents = JarContents.of(content);

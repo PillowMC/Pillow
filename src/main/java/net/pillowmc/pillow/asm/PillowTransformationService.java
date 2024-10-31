@@ -34,7 +34,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.jar.Manifest;
 import java.util.stream.Stream;
-
 import net.fabricmc.api.EnvType;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.fml.loading.LibraryFinder;
@@ -60,7 +59,7 @@ import org.quiltmc.loader.impl.util.log.Log;
 import org.quiltmc.loader.impl.util.log.LogCategory;
 
 public class PillowTransformationService extends QuiltLauncherBase implements ITransformationService {
-	private static final String DFU_VERSION = "7.0.14";
+	private static final String DFU_VERSION = "8.0.16";
 	private boolean hasLanguageAdapter = false;
 	@SuppressWarnings("unchecked")
 	public PillowTransformationService() {
@@ -150,8 +149,8 @@ public class PillowTransformationService extends QuiltLauncherBase implements IT
 	public List<Resource> beginScanning(IEnvironment environment) {
 		if (plugincp.isEmpty())
 			return List.of();
-		var modContents = new JarContentsBuilder().paths(plugincp.toArray(new Path[0])).pathFilter(this::filterPackagesPluginLayer)
-				.build();
+		var modContents = new JarContentsBuilder().paths(plugincp.toArray(new Path[0]))
+				.pathFilter(this::filterPackagesPluginLayer).build();
 		var modJar = SecureJar.from(modContents, createJarMetadata(modContents, "quiltLanguageMods"));
 		var modResource = new Resource(Layer.PLUGIN, List.of(modJar));
 		return List.of(modResource);
@@ -197,14 +196,16 @@ public class PillowTransformationService extends QuiltLauncherBase implements IT
 			"com/electronwill/nightconfig", "org/openjdk/nashorn", "org/apache/maven/artifact",
 			"org/apache/maven/repository", "org/lwjgl", "org/antlr");
 
-	public static final Set<String> NO_LOAD_PACKAGES_PLUGIN_LAYER = loadNoLoads("packages-plugin-layer", "kotlin", "_COROUTINE");
+	public static final Set<String> NO_LOAD_PACKAGES_PLUGIN_LAYER = loadNoLoads("packages-plugin-layer", "kotlin",
+			"_COROUTINE");
 
 	private boolean filterPackages(String entry, Path _basePath) {
 		return NO_LOAD_PACKAGES.stream().noneMatch(entry::startsWith);
 	}
 
 	private boolean filterPackagesPluginLayer(String entry, Path _basePath) {
-		return Stream.concat(NO_LOAD_PACKAGES.stream(), NO_LOAD_PACKAGES_PLUGIN_LAYER.stream()).noneMatch(entry::startsWith);
+		return Stream.concat(NO_LOAD_PACKAGES.stream(), NO_LOAD_PACKAGES_PLUGIN_LAYER.stream())
+				.noneMatch(entry::startsWith);
 	}
 
 	@Override
@@ -348,9 +349,9 @@ public class PillowTransformationService extends QuiltLauncherBase implements IT
 
 	@Override
 	public ClassLoader getClassLoader(ModContainer mod) {
-		if (mod.metadata() instanceof ModMetadataExt ext &&
-			!ext.languageAdapters().isEmpty()) {
-			return Launcher.INSTANCE.findLayerManager().orElseThrow().getLayer(Layer.PLUGIN).orElseThrow().findLoader("quiltLanguageMods");
+		if (mod.metadata() instanceof ModMetadataExt ext && !ext.languageAdapters().isEmpty()) {
+			return Launcher.INSTANCE.findLayerManager().orElseThrow().getLayer(Layer.PLUGIN).orElseThrow()
+					.findLoader("quiltLanguageMods");
 		}
 		return getTargetClassLoader();
 	}
