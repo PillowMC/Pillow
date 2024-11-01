@@ -43,6 +43,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class PillowTransformationService extends FabricLauncherBase implements ITransformationService {
 	private static final String DFU_VERSION = "8.0.16";
+	private static final String AUTHLIB_VERSION = "6.0.55";
 	private boolean hasLanguageAdapter = false;
 
 	@Override
@@ -169,7 +170,9 @@ public class PillowTransformationService extends FabricLauncherBase implements I
 		var modJar = SecureJar.from(modContents, createJarMetadata(modContents, "fabricMods"));
 		var modResource = new Resource(Layer.GAME, List.of(modJar));
 		var dfuJar = SecureJar
-				.from(LibraryFinder.findPathForMaven("com.mojang", "datafixerupper", "", "", DFU_VERSION));
+				.from(
+						LibraryFinder.findPathForMaven("com.mojang", "datafixerupper", "", "", DFU_VERSION),
+						LibraryFinder.findPathForMaven("com.mojang", "authlib", "", "", AUTHLIB_VERSION));
 		var depResource = new Resource(Layer.GAME, List.of(dfuJar));
 		return List.of(modResource, depResource);
 	}
