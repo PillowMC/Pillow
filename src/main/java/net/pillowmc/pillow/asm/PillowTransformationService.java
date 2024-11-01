@@ -61,6 +61,7 @@ import org.quiltmc.loader.impl.util.log.LogCategory;
 
 public class PillowTransformationService extends QuiltLauncherBase implements ITransformationService {
 	private static final String DFU_VERSION = "7.0.14";
+	private static final String AUTHLIB_VERSION = "6.0.55";
 	private boolean hasLanguageAdapter = false;
 	@SuppressWarnings("unchecked")
 	public PillowTransformationService() {
@@ -182,7 +183,9 @@ public class PillowTransformationService extends QuiltLauncherBase implements IT
 		var modJar = SecureJar.from(modContents, createJarMetadata(modContents, "quiltMods"));
 		var modResource = new Resource(Layer.GAME, List.of(modJar));
 		var dfuJar = SecureJar
-				.from(LibraryFinder.findPathForMaven("com.mojang", "datafixerupper", "", "", DFU_VERSION));
+				.from(
+						LibraryFinder.findPathForMaven("com.mojang", "datafixerupper", "", "", DFU_VERSION),
+						LibraryFinder.findPathForMaven("com.mojang", "authlib", "", "", AUTHLIB_VERSION));
 		var depResource = new Resource(Layer.GAME, List.of(dfuJar));
 		return List.of(modResource, depResource);
 	}
