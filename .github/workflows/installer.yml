@@ -26,6 +26,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: PillowMC/pillow-install-meta
+          ref: fabric
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -35,7 +36,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: target
-          key: metatarget
+          key: metatarget-fabric
       - name: Generate installer
         run: |
           wget https://maven.neoforged.net/releases/net/neoforged/neoforge/${{ inputs.neo_v }}/neoforge-${{ inputs.neo_v }}-installer.jar
@@ -48,6 +49,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: inputs.do_release
         with:
-          tag_name: v${{ inputs.pillow_v }}
+          tag_name: ${{ inputs.pillow_v }}
           files: pillow-${{ inputs.pillow_v }}-installer.jar
           body: Installer is from NeoForge ${{ inputs.neo_v }}, with Fabric Loader ${{ inputs.fabric_v }}.

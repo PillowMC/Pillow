@@ -5,18 +5,12 @@
 
 package net.pillowmc.pillow.launch;
 
-import java.util.function.Consumer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
-import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.FormattedException;
-import net.fabricmc.loader.impl.ModContainerImpl;
 import net.fabricmc.loader.impl.util.log.Log;
-import net.neoforged.fml.loading.VersionInfo;
 import net.neoforged.fml.loading.targets.CommonServerLaunchHandler;
-import net.neoforged.neoforgespi.locating.IModFileCandidateLocator;
 import net.pillowmc.pillow.Utils;
-import net.pillowmc.pillow.launch.copied.PillowServerProvider;
 
 public class PillowServerLaunchHandler extends CommonServerLaunchHandler {
 	@Override
@@ -46,13 +40,5 @@ public class PillowServerLaunchHandler extends CommonServerLaunchHandler {
 			throw FormattedException.ofLocalized("exception.initializerFailure", e);
 		}
 		return super.preLaunch(arguments, layer);
-	}
-
-	@Override
-	public void collectAdditionalModFileLocators(VersionInfo versionInfo, Consumer<IModFileCandidateLocator> output) {
-		var additionalContent = getAdditionalMinecraftJarContent(versionInfo);
-		output.accept(new PillowServerProvider(additionalContent,
-				((ModContainerImpl) FabricLoaderImpl.INSTANCE.getModContainer("minecraft").orElseThrow())
-						.getCodeSourcePaths()));
 	}
 }
