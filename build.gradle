@@ -7,7 +7,7 @@ plugins {
 }
 
 
-version = "0.3.2"
+version = "0.3.3-quilt"
 group = 'net.pillowmc' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'pillow'
 
@@ -64,12 +64,12 @@ configurations {
 }
 
 dependencies {
-    implementation "net.neoforged.fancymodloader:loader:3.0.19"
-    implementation "cpw.mods:modlauncher:11.0.2"
+    implementation "net.neoforged.fancymodloader:loader:4.0.31"
+    implementation "cpw.mods:modlauncher:11.0.4"
     implementation "cpw.mods:securejarhandler:3.0.4"
     implementation "org.jetbrains:annotations:24.1.0"
-    api "net.fabricmc:sponge-mixin:0.13.1+mixin.0.8.5"
-    api ("org.quiltmc:quilt-loader:0.26.3") {
+    api "net.fabricmc:sponge-mixin:0.15.3+mixin.0.8.7"
+    api ("org.quiltmc:quilt-loader:0.27.0-beta.1") {
         exclude group: "org.ow2.asm"
     }
     api "net.fabricmc:tiny-mappings-parser:0.3.0+build.17"

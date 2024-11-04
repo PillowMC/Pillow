@@ -56,9 +56,11 @@ public class PillowServerProvider implements IModFileCandidateLocator {
 
 			var mcextra_filtered = SecureJar.from(new JarContentsBuilder()
 					// We only want it for its resources. So filter everything else out.
-					.pathFilter((path, base) -> path.equals("META-INF/versions/") || // This is required because it bypasses our filter
-                                                                // for the manifest, and it's a multi-release jar.
-                            (!path.endsWith(".class") && !path.startsWith("META-INF/"))).paths(mcextra).build());
+					.pathFilter((path, base) -> path.equals("META-INF/versions/") || // This is required because it
+																						// bypasses our filter
+					// for the manifest, and it's a multi-release jar.
+							(!path.endsWith(".class") && !path.startsWith("META-INF/")))
+					.paths(mcextra).build());
 
 			var content = new ArrayList<Path>();
 			content.add(mc);
@@ -73,7 +75,7 @@ public class PillowServerProvider implements IModFileCandidateLocator {
 				content.add(extraPath);
 			}
 			// PillowMC: Added additionalFiles. (3 lines)
-            content.addAll(additionalFiles);
+			content.addAll(additionalFiles);
 
 			var mcJarContents = JarContents.of(content);
 
