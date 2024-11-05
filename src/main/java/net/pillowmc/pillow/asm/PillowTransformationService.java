@@ -182,10 +182,10 @@ public class PillowTransformationService extends QuiltLauncherBase implements IT
 		var modJar = SecureJar.from(modContents, createJarMetadata(modContents, "quiltMods"));
 		var modResource = new Resource(Layer.GAME, List.of(modJar));
 		var dfuJar = SecureJar
-				.from(
-						LibraryFinder.findPathForMaven("com.mojang", "datafixerupper", "", "", DFU_VERSION),
-						LibraryFinder.findPathForMaven("com.mojang", "authlib", "", "", AUTHLIB_VERSION));
-		var depResource = new Resource(Layer.GAME, List.of(dfuJar));
+				.from(LibraryFinder.findPathForMaven("com.mojang", "datafixerupper", "", "", DFU_VERSION));
+		var authlibJar = SecureJar
+				.from(LibraryFinder.findPathForMaven("com.mojang", "authlib", "", "", AUTHLIB_VERSION));
+		var depResource = new Resource(Layer.GAME, List.of(dfuJar, authlibJar));
 		return List.of(modResource, depResource);
 	}
 

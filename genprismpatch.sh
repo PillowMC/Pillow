@@ -54,7 +54,7 @@ cat > net.pillowmc.pillow.json << EOF
         "-Dfml.pluginLayerLibraries=",
         "-DlibraryDirectory=$PRISM_PATH/libraries/",
         "-DmergeModules=jna-5.10.0.jar,jna-platform-5.10.0.jar",
-        "-DignoreList=securejarhandler-$SJH_VERSION.jar,asm-,bootstraplauncher-$BSL_VERSION.jar,JarJarFileSystems-$JJFS_VERSION.jar,intermediary-,client-extra,neoforge-,$MC_VERSION.jar,datafixerupper,minecraft-$MC_VERSION-client.jar",
+        "-DignoreList=securejarhandler-$SJH_VERSION.jar,asm-,bootstraplauncher-$BSL_VERSION.jar,JarJarFileSystems-$JJFS_VERSION.jar,intermediary-,client-extra,neoforge-,$MC_VERSION.jar,datafixerupper,authlib,minecraft-$MC_VERSION-client.jar",
         "-p",
         "$PRISM_PATH/libraries/cpw/mods/bootstraplauncher/$BSL_VERSION/bootstraplauncher-$BSL_VERSION.jar$SEPRATOR$PRISM_PATH/libraries/cpw/mods/securejarhandler/$SJH_VERSION/securejarhandler-$SJH_VERSION.jar$SEPRATOR$PRISM_PATH/libraries/org/ow2/asm/asm-commons/$ASM_VERSION/asm-commons-$ASM_VERSION.jar$SEPRATOR$PRISM_PATH/libraries/org/ow2/asm/asm-util/$ASM_VERSION/asm-util-$ASM_VERSION.jar$SEPRATOR$PRISM_PATH/libraries/org/ow2/asm/asm-analysis/$ASM_VERSION/asm-analysis-$ASM_VERSION.jar$SEPRATOR$PRISM_PATH/libraries/org/ow2/asm/asm-tree/$ASM_VERSION/asm-tree-$ASM_VERSION.jar$SEPRATOR$PRISM_PATH/libraries/org/ow2/asm/asm/$ASM_VERSION/asm-$ASM_VERSION.jar",
         "--add-modules",
